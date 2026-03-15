@@ -53,11 +53,6 @@ async function runDayPhase() {
   gameState.phase = "day";
   GameUI.updateHeader(gameState);
 
-  // 1日目以外は襲撃結果
-  if (gameState.day > 1) {
-    // 襲撃結果はrunNightPhaseで表示済み
-  }
-
   if (gameState.day === 1) {
     GameUI.addMessage("☀️ 1日目の朝です。今日は処刑はありません。自己紹介をしましょう。", null, "system");
   } else {
@@ -73,14 +68,17 @@ async function runDayPhase() {
     gameState.addLog("statement", statement, player.name);
   }
 
-  // 人間の発言入力
-  await new Promise(resolve => {
-    GameUI.showChatInput((text) => {
-      GameUI.addMessage(text, `🎮 ${gameState.getHuman().name}`, "you");
-      gameState.addLog("statement", text, gameState.getHuman().name);
-      resolve();
+  // 人間の発言入力（生存時のみ）
+  const human = gameState.getHuman();
+  if (human.isAlive) {
+    await new Promise(resolve => {
+      GameUI.showChatInput((text) => {
+        GameUI.addMessage(text, `🎮 ${human.name}`, "you");
+        gameState.addLog("statement", text, human.name);
+        resolve();
+      });
     });
-  });
+  }
 
   // 1日目は投票なし
   if (gameState.day === 1) {
@@ -101,11 +99,10 @@ async function runVotePhase() {
 
   const alive = gameState.getAlive();
   const human = gameState.getHuman();
-
-  // AI投票を先に取得
   const votes = {};
+
+  // 人間の投票（生存時のみ）
   if (human.isAlive) {
-    // 人間の投票
     const targets = alive.filter(p => p.id !== human.id);
     await new Promise(resolve => {
       GameUI.showVoteButtons(targets, (targetId) => {
@@ -130,14 +127,16 @@ async function runVotePhase() {
   for (const [voterId, targetId] of Object.entries(votes)) {
     const voter = gameState.getPlayerById(voterId);
     const target = gameState.getPlayerById(targetId);
-    GameUI.addMessage(`${voter.name} → ${target.name}`, null, "system");
+    if (voter && target) {
+      GameUI.addMessage(`${voter.name} → ${target.name}`, null, "system");
+    }
   }
 
   // 集計
   const executedId = gameLogic.tallyVotes(votes);
   const executed = gameState.getPlayerById(executedId);
   await sleep(500);
-  GameUI.addMessage(`${executed.name} が処刑されました。`, null, "danger");
+  GameUI.addMessage(`${executed.name} が処刑されました。役職は【${ROLES[executed.role].name}】でした。`, null, "danger");
   gameState.killPlayer(executedId);
   GameUI.renderPlayers(gameState);
 
@@ -174,8 +173,8 @@ async function runNightPhase() {
     } else if (ability === "divine") {
       GameUI.addMessage("占う人を選んでください", null, "system");
     } else if (ability === "attack") {
-      const villagers = targets.filter(p => ROLES[p.role].team !== "werewolf" || p.isHuman);
-      actionTargets = villagers.length > 0 ? villagers : targets;
+      // 人狼は仲間の人狼を襲撃できない
+      actionTargets = targets.filter(p => p.role !== "werewolf");
       GameUI.addMessage("襲撃する人を選んでください", null, "system");
     }
 
@@ -188,6 +187,12 @@ async function runNightPhase() {
         resolve();
       });
     });
+  } else if (human.isAlive) {
+    // 能力なしプレイヤー（村人）は待機
+    GameUI.addMessage("あなたには夜の能力がありません。夜が明けるのを待ちましょう...", null, "system");
+    await new Promise(resolve => {
+      GameUI.showContinueButton("夜が明けるのを待つ", resolve);
+    });
   }
 
   // AI夜アクション
@@ -197,7 +202,6 @@ async function runNightPhase() {
     const ability = ROLES[player.role].ability;
     const targetId = await gameLogic.getAiNightAction(player);
     if (targetId) {
-      // 同じ能力の既存アクションがあれば（人狼が複数の場合）、後の人狼が決定
       nightActions[ability] = targetId;
     }
   }
