@@ -1,0 +1,45 @@
+{
+  "roles": [
+    {
+      "id": "villager",
+      "name": "村人",
+      "team": "village",
+      "ability": null,
+      "description": "特殊な能力を持たない一般村人。議論と投票で人狼を見つけ出そう。",
+      "nightAction": false,
+      "appearAsWerewolf": false
+    },
+    {
+      "id": "seer",
+      "name": "占い師",
+      "team": "village",
+      "ability": "divine",
+      "description": "毎晩1人を占い、その人が人狼かどうかを知ることができる。",
+      "nightAction": true,
+      "appearAsWerewolf": false
+    },
+    {
+      "id": "knight",
+      "name": "騎士",
+      "team": "village",
+      "ability": "guard",
+      "description": "毎晩1人を護衛し、人狼の襲撃から守る。前夜と同じ人は護衛できない。",
+      "nightAction": true,
+      "appearAsWerewolf": false
+    },
+    {
+      "id": "werewolf",
+      "name": "人狼",
+      "team": "werewolf",
+      "ability": "attack",
+      "description": "毎晩1人を襲撃して殺害する。仲間の人狼が誰か知っている。",
+      "nightAction": true,
+      "appearAsWerewolf": true
+    }
+  ],
+  "compositions": {
+    "5": { "villager": 2, "seer": 1, "knight": 0, "werewolf": 2 },
+    "7": { "villager": 3, "seer": 1, "knight": 1, "werewolf": 2 },
+    "9": { "villager": 4, "seer": 1, "knight": 1, "werewolf": 3 }
+  }
+}
