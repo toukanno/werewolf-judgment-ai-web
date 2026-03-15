@@ -61,9 +61,21 @@
 ## 起動方法
 
 ```bash
-# ビルド不要。ブラウザで直接開く
+# 方法1: ブラウザで直接開く
 open public/index.html
+
+# 方法2: HTTPサーバー経由（推奨）
+python3 -m http.server 8080
+# → http://localhost:8080/public/index.html にアクセス
 ```
+
+## テスト
+
+```bash
+node test/game-test.js
+```
+
+ゲームロジック（状態管理・勝敗判定・投票・夜処理・MockAI）の22項目を自動検証します。
 
 ## ライセンス
 
