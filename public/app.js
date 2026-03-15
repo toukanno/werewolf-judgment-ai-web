@@ -118,6 +118,8 @@ async function runVotePhase() {
         resolve();
       });
     });
+  } else {
+    GameUI.addMessage("（あなたは死亡しているため投票できません）", null, "system");
   }
 
   // AI投票
@@ -142,6 +144,9 @@ async function runVotePhase() {
   const executedId = gameLogic.tallyVotes(votes);
   const executed = gameState.getPlayerById(executedId);
   await sleep(500);
+  if (executed.isHuman) {
+    GameUI.addMessage("あなたが処刑されました...！ 以降は観戦モードになります。", null, "danger");
+  }
   GameUI.addMessage(`${executed.name} が処刑されました。役職は【${ROLES[executed.role].name}】でした。`, null, "danger");
   gameState.killPlayer(executedId);
   GameUI.renderPlayers(gameState);
@@ -238,6 +243,9 @@ async function runNightPhase() {
   // 襲撃結果
   if (result.killed) {
     const killed = gameState.getPlayerById(result.killed);
+    if (killed.isHuman) {
+      GameUI.addMessage("あなたは人狼に襲撃されました...！ 以降は観戦モードになります。", null, "danger");
+    }
     GameUI.addMessage(`${killed.name} が無残な姿で発見されました...`, null, "danger");
     GameUI.renderPlayers(gameState);
   } else {
