@@ -8,7 +8,63 @@ window.addEventListener("DOMContentLoaded", () => {
   selectPlayerCount(5);
   const savedKey = localStorage.getItem("werewolf_api_key");
   if (savedKey) document.getElementById("api-key").value = savedKey;
+
+  // 保存データの復帰チェック
+  if (GameState.hasSavedGame()) {
+    document.getElementById("resume-banner").style.display = "flex";
+  }
 });
+
+// 保存データから復帰
+async function resumeGame() {
+  document.getElementById("resume-banner").style.display = "none";
+  const apiKey = localStorage.getItem("werewolf_api_key") || "";
+  const ai = apiKey ? new OpenRouterAI(apiKey) : new MockAI();
+
+  gameState.reset();
+  if (!gameState.load()) {
+    // 復帰失敗 → ロビーへ
+    showScreen("lobby");
+    return;
+  }
+  gameLogic = new GameLogic(gameState, ai);
+
+  showScreen("game");
+  GameUI.clearMessages();
+  GameUI.updateHeader(gameState);
+  GameUI.renderPlayers(gameState);
+
+  // 保存されたログを再表示
+  for (const entry of gameState.log) {
+    if (entry.type === "statement") {
+      const player = gameState.players.find(p => p.name === entry.sender);
+      if (player && player.isHuman) {
+        GameUI.addMessage(entry.content, `🎮 ${entry.sender}`, "you");
+      } else if (player) {
+        GameUI.addMessage(entry.content, `${player.avatar} ${entry.sender}`, "ai");
+      }
+    } else {
+      GameUI.addMessage(entry.content, null, "system");
+    }
+  }
+
+  GameUI.addMessage("--- ゲームを再開しました ---", null, "system");
+
+  // 保存時のフェーズに応じて再開
+  if (gameState.phase === "night") {
+    await runNightPhase();
+  } else if (gameState.phase === "vote") {
+    await runVotePhase();
+  } else {
+    await runDayPhase();
+  }
+}
+
+// 保存データを無視して新規開始
+function dismissResume() {
+  document.getElementById("resume-banner").style.display = "none";
+  gameState.clearSave();
+}
 
 // ゲーム開始
 async function startGame() {
@@ -19,7 +75,8 @@ async function startGame() {
   // AI選択
   const ai = apiKey ? new OpenRouterAI(apiKey) : new MockAI();
 
-  // 状態初期化
+  // 状態初期化（前回の保存データをクリア）
+  gameState.clearSave();
   gameState.reset();
   gameState.initPlayers(playerName, count);
   gameLogic = new GameLogic(gameState, ai);
@@ -45,6 +102,7 @@ async function startGame() {
   }
 
   await sleep(1000);
+  gameState.save();
   await runDayPhase();
 }
 
@@ -89,11 +147,13 @@ async function runDayPhase() {
   // 1日目は投票なし
   if (gameState.day === 1) {
     GameUI.addMessage("1日目の議論が終わりました。夜になります...", null, "system");
+    gameState.save();
     GameUI.showContinueButton("🌙 夜へ進む", () => runNightPhase());
     return;
   }
 
   // 投票フェーズ
+  gameState.save();
   await runVotePhase();
 }
 
@@ -154,11 +214,13 @@ async function runVotePhase() {
   // 勝敗判定
   const winner = gameState.checkWinCondition();
   if (winner) {
+    gameState.clearSave();
     await sleep(1000);
     GameUI.showResult(winner, gameState);
     return;
   }
 
+  gameState.save();
   GameUI.showContinueButton("🌙 夜へ進む", () => runNightPhase());
 }
 
@@ -255,11 +317,13 @@ async function runNightPhase() {
   // 勝敗判定
   const winner = gameState.checkWinCondition();
   if (winner) {
+    gameState.clearSave();
     await sleep(1000);
     GameUI.showResult(winner, gameState);
     return;
   }
 
+  gameState.save();
   GameUI.showContinueButton("☀️ 議論を始める", () => runDayPhase());
 }
 

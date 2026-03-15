@@ -95,4 +95,72 @@ class GameState {
     }
     return null;
   }
+
+  // --- localStorage 保存/復元 ---
+
+  static SAVE_KEY = "werewolf_game_save";
+  static SAVE_VERSION = 1;
+  static MAX_LOG_SAVE = 50;
+
+  save() {
+    try {
+      if (typeof localStorage === "undefined") return;
+      const data = {
+        version: GameState.SAVE_VERSION,
+        players: this.players,
+        day: this.day,
+        phase: this.phase,
+        log: this.log.slice(-GameState.MAX_LOG_SAVE),
+        voteHistory: this.voteHistory,
+        nightActions: this.nightActions,
+        lastGuardTarget: this.lastGuardTarget,
+        isGameOver: this.isGameOver,
+        winner: this.winner
+      };
+      localStorage.setItem(GameState.SAVE_KEY, JSON.stringify(data));
+    } catch { /* 容量超過等は無視 */ }
+  }
+
+  load() {
+    try {
+      if (typeof localStorage === "undefined") return false;
+      const raw = localStorage.getItem(GameState.SAVE_KEY);
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      if (!data || data.version !== GameState.SAVE_VERSION || !Array.isArray(data.players) || data.players.length === 0) {
+        this.clearSave();
+        return false;
+      }
+      this.players = data.players;
+      this.day = data.day;
+      this.phase = data.phase;
+      this.log = data.log || [];
+      this.voteHistory = data.voteHistory || [];
+      this.nightActions = data.nightActions || {};
+      this.lastGuardTarget = data.lastGuardTarget || null;
+      this.isGameOver = data.isGameOver || false;
+      this.winner = data.winner || null;
+      return true;
+    } catch {
+      this.clearSave();
+      return false;
+    }
+  }
+
+  clearSave() {
+    try {
+      if (typeof localStorage === "undefined") return;
+      localStorage.removeItem(GameState.SAVE_KEY);
+    } catch { /* 無視 */ }
+  }
+
+  static hasSavedGame() {
+    try {
+      if (typeof localStorage === "undefined") return false;
+      const raw = localStorage.getItem(GameState.SAVE_KEY);
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      return data && data.version === GameState.SAVE_VERSION && Array.isArray(data.players) && data.players.length > 0 && !data.isGameOver;
+    } catch { return false; }
+  }
 }

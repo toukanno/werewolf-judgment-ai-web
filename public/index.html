@@ -9,6 +9,15 @@
 <body>
 <div id="app">
 
+  <!-- ===== 復帰バナー ===== -->
+  <div id="resume-banner" class="resume-banner" style="display:none;">
+    <p>前回のゲームが見つかりました</p>
+    <div class="resume-actions">
+      <button class="btn btn-primary btn-sm" onclick="resumeGame()">続きから再開</button>
+      <button class="btn btn-sm" onclick="dismissResume()">新しく始める</button>
+    </div>
+  </div>
+
   <!-- ===== トップ画面 ===== -->
   <section id="screen-title" class="screen active">
     <div class="title-container">

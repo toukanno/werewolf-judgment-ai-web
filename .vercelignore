@@ -1,0 +1,8 @@
+.git
+test
+docs
+node_modules
+*.md
+.gitignore
+.env
+.env.*

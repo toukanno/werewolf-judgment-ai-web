@@ -58,6 +58,10 @@
 5. AI 応答処理（OpenRouter API 連携）
 6. 統合テスト・バランス調整
 
+## デモ
+
+https://werewolf-judgment-ai-web.vercel.app
+
 ## 起動方法
 
 ```bash

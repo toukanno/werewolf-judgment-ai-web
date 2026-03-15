@@ -199,6 +199,16 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
+/* ===== 復帰バナー ===== */
+.resume-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  padding: 12px 20px;
+  background: var(--surface2); border-bottom: 1px solid var(--accent);
+  font-size: 14px; color: var(--text);
+}
+.resume-actions { display: flex; gap: 8px; }
+
 /* ===== アニメーション ===== */
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .msg { animation: fadeIn 0.3s ease; }
