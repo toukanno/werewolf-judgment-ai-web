@@ -78,6 +78,12 @@ async function runDayPhase() {
         resolve();
       });
     });
+  } else {
+    // 死亡時は観戦モード
+    GameUI.addMessage("（あなたは死亡しています。観戦中です）", null, "system");
+    await new Promise(resolve => {
+      GameUI.showContinueButton("次へ進む", resolve);
+    });
   }
 
   // 1日目は投票なし
@@ -192,6 +198,12 @@ async function runNightPhase() {
     GameUI.addMessage("あなたには夜の能力がありません。夜が明けるのを待ちましょう...", null, "system");
     await new Promise(resolve => {
       GameUI.showContinueButton("夜が明けるのを待つ", resolve);
+    });
+  } else {
+    // 死亡時は観戦
+    GameUI.addMessage("（あなたは死亡しています。夜が明けるのを待ちます）", null, "system");
+    await new Promise(resolve => {
+      GameUI.showContinueButton("次へ進む", resolve);
     });
   }
 
