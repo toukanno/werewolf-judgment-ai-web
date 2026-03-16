@@ -5,7 +5,7 @@
       "name": "村人",
       "team": "village",
       "ability": null,
-      "description": "特殊な能力を持たない一般村人。議論と投票で人狼を見つけ出そう。",
+      "description": "特殊な能力を持たない一般村人。議論と投票で人狼を見つけ出す。",
       "nightAction": false,
       "appearAsWerewolf": false
     },
@@ -23,8 +23,35 @@
       "name": "騎士",
       "team": "village",
       "ability": "guard",
-      "description": "毎晩1人を護衛し、人狼の襲撃から守る。前夜と同じ人は護衛できない。",
+      "description": "毎晩1人を護衛し、人狼の襲撃から守る。",
       "nightAction": true,
+      "appearAsWerewolf": false
+    },
+    {
+      "id": "medium",
+      "name": "霊能者",
+      "team": "village",
+      "ability": null,
+      "description": "処刑されたプレイヤーが人狼だったかどうかを知ることができる。",
+      "nightAction": false,
+      "appearAsWerewolf": false
+    },
+    {
+      "id": "hunter",
+      "name": "狩人",
+      "team": "village",
+      "ability": null,
+      "description": "村人陣営として立ち回る役職。状況整理と誘導が得意。",
+      "nightAction": false,
+      "appearAsWerewolf": false
+    },
+    {
+      "id": "baker",
+      "name": "パン屋",
+      "team": "village",
+      "ability": null,
+      "description": "毎日パンを焼いて村に安心感を与える村人陣営役職。",
+      "nightAction": false,
       "appearAsWerewolf": false
     },
     {
@@ -38,8 +65,21 @@
     }
   ],
   "compositions": {
-    "5": { "villager": 2, "seer": 1, "knight": 0, "werewolf": 2 },
-    "7": { "villager": 3, "seer": 1, "knight": 1, "werewolf": 2 },
-    "9": { "villager": 4, "seer": 1, "knight": 1, "werewolf": 3 }
+    "5": { "villager": 2, "seer": 1, "knight": 0, "medium": 0, "hunter": 0, "baker": 0, "werewolf": 2 },
+    "6": { "villager": 3, "seer": 1, "knight": 0, "medium": 0, "hunter": 0, "baker": 0, "werewolf": 2 },
+    "7": { "villager": 3, "seer": 1, "knight": 1, "medium": 0, "hunter": 0, "baker": 0, "werewolf": 2 },
+    "8": { "villager": 4, "seer": 1, "knight": 1, "medium": 0, "hunter": 0, "baker": 0, "werewolf": 2 },
+    "9": { "villager": 4, "seer": 1, "knight": 1, "medium": 0, "hunter": 0, "baker": 0, "werewolf": 3 },
+    "10": { "villager": 4, "seer": 1, "knight": 1, "medium": 1, "hunter": 0, "baker": 0, "werewolf": 3 },
+    "11": { "villager": 5, "seer": 1, "knight": 1, "medium": 1, "hunter": 0, "baker": 0, "werewolf": 3 },
+    "12": { "villager": 5, "seer": 1, "knight": 1, "medium": 1, "hunter": 1, "baker": 0, "werewolf": 3 },
+    "13": { "villager": 6, "seer": 1, "knight": 1, "medium": 1, "hunter": 1, "baker": 0, "werewolf": 3 },
+    "14": { "villager": 6, "seer": 1, "knight": 1, "medium": 1, "hunter": 1, "baker": 0, "werewolf": 4 },
+    "15": { "villager": 6, "seer": 1, "knight": 1, "medium": 1, "hunter": 1, "baker": 1, "werewolf": 4 },
+    "16": { "villager": 7, "seer": 1, "knight": 1, "medium": 1, "hunter": 1, "baker": 1, "werewolf": 4 },
+    "17": { "villager": 8, "seer": 1, "knight": 1, "medium": 1, "hunter": 1, "baker": 1, "werewolf": 4 },
+    "18": { "villager": 8, "seer": 1, "knight": 1, "medium": 1, "hunter": 1, "baker": 1, "werewolf": 5 },
+    "19": { "villager": 9, "seer": 1, "knight": 1, "medium": 1, "hunter": 1, "baker": 1, "werewolf": 5 },
+    "20": { "villager": 10, "seer": 1, "knight": 1, "medium": 1, "hunter": 1, "baker": 1, "werewolf": 5 }
   }
 }

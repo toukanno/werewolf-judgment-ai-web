@@ -55,6 +55,90 @@
       "personality": "柔軟で適応力がある。状況に応じて戦略を変える。",
       "style": "adaptive",
       "avatar": "👩‍🎤"
+    },
+    {
+      "id": "ai_9",
+      "name": "タクミ",
+      "personality": "テンポ良く議論を回す進行役。",
+      "style": "facilitator",
+      "avatar": "🧑‍🏫"
+    },
+    {
+      "id": "ai_10",
+      "name": "ナナ",
+      "personality": "小さな違和感を丁寧に拾う。",
+      "style": "careful",
+      "avatar": "👩‍🔬"
+    },
+    {
+      "id": "ai_11",
+      "name": "ソウタ",
+      "personality": "数字と確率で判断する理詰め派。",
+      "style": "logical",
+      "avatar": "👨‍💻"
+    },
+    {
+      "id": "ai_12",
+      "name": "ユイ",
+      "personality": "発言がやわらかく、味方のフォローが上手い。",
+      "style": "supportive",
+      "avatar": "👩‍⚕️"
+    },
+    {
+      "id": "ai_13",
+      "name": "カイト",
+      "personality": "強気に殴り合う前衛タイプ。",
+      "style": "offensive",
+      "avatar": "🧑‍🚀"
+    },
+    {
+      "id": "ai_14",
+      "name": "レナ",
+      "personality": "寡黙だが終盤に鋭い指摘をする。",
+      "style": "late-bloom",
+      "avatar": "👩‍💼"
+    },
+    {
+      "id": "ai_15",
+      "name": "ショウ",
+      "personality": "盤面整理が得意で要点をまとめる。",
+      "style": "organizer",
+      "avatar": "👨‍🏫"
+    },
+    {
+      "id": "ai_16",
+      "name": "エミ",
+      "personality": "相手の心理を読むのが得意。",
+      "style": "psychological",
+      "avatar": "👩‍🎓"
+    },
+    {
+      "id": "ai_17",
+      "name": "トモヤ",
+      "personality": "中立的に見えて要所で決断する。",
+      "style": "balanced",
+      "avatar": "🧑‍⚖️"
+    },
+    {
+      "id": "ai_18",
+      "name": "ヒナ",
+      "personality": "直感重視で思い切った投票をする。",
+      "style": "instinctive",
+      "avatar": "👧🏻"
+    },
+    {
+      "id": "ai_19",
+      "name": "ガク",
+      "personality": "序盤からライン考察を進める。",
+      "style": "line-reader",
+      "avatar": "👨‍🏭"
+    },
+    {
+      "id": "ai_20",
+      "name": "ミオ",
+      "personality": "慎重に情報を積み重ねる。",
+      "style": "steady",
+      "avatar": "👩‍💻"
     }
   ]
 }
