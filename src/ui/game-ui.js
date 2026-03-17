@@ -22,8 +22,7 @@ const GameUI = {
       const classes = ["player-chip"];
       if (!p.isAlive) classes.push("dead");
       if (p.isHuman) classes.push("is-you");
-      if (p.design === "cute") classes.push("is-cute");
-      return `<div class="${classes.join(" ")}"><span class="avatar">${p.avatar}</span> ${p.name}${p.design === "cute" ? " <span class=\"cute-mark\">✨</span>" : ""}</div>`;
+      return `<div class="${classes.join(" ")}"><span class="avatar">${p.avatar}</span> ${p.name}</div>`;
     }).join("");
   },
 
@@ -112,11 +111,9 @@ const GameUI = {
     }
 
     playersDiv.innerHTML = state.players.map(p => {
-      const classes = ["result-player"];
-      if (!p.isAlive) classes.push("dead");
-      if (p.design === "cute") classes.push("is-cute");
+      const dead = p.isAlive ? "" : " dead";
       const status = p.isAlive ? "生存" : "死亡";
-      return `<div class="${classes.join(" ")}">
+      return `<div class="result-player${dead}">
         <div>${p.avatar} ${p.name} ${p.isHuman ? "(あなた)" : ""}</div>
         <div class="role-name">${ROLES[p.role].name} — ${status}</div>
       </div>`;

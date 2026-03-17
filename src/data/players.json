@@ -12,8 +12,7 @@
       "name": "ミサキ",
       "personality": "直感的で大胆。怪しいと思ったらすぐに指摘する。",
       "style": "aggressive",
-      "avatar": "👩‍🦰",
-      "design": "cute"
+      "avatar": "👩‍🦰"
     },
     {
       "id": "ai_3",
@@ -27,8 +26,7 @@
       "name": "サクラ",
       "personality": "明るくムードメーカー。場の空気を読むのが得意。",
       "style": "social",
-      "avatar": "👧",
-      "design": "cute"
+      "avatar": "👧"
     },
     {
       "id": "ai_5",
@@ -42,8 +40,7 @@
       "name": "ハルカ",
       "personality": "感情的で正義感が強い。味方を守ろうとする。",
       "style": "emotional",
-      "avatar": "👩",
-      "design": "cute"
+      "avatar": "👩"
     },
     {
       "id": "ai_7",
@@ -57,8 +54,7 @@
       "name": "マイ",
       "personality": "柔軟で適応力がある。状況に応じて戦略を変える。",
       "style": "adaptive",
-      "avatar": "👩‍🎤",
-      "design": "cute"
+      "avatar": "👩‍🎤"
     },
     {
       "id": "ai_9",
@@ -72,8 +68,7 @@
       "name": "ナナ",
       "personality": "小さな違和感を丁寧に拾う。",
       "style": "careful",
-      "avatar": "👩‍🔬",
-      "design": "cute"
+      "avatar": "👩‍🔬"
     },
     {
       "id": "ai_11",
@@ -87,8 +82,7 @@
       "name": "ユイ",
       "personality": "発言がやわらかく、味方のフォローが上手い。",
       "style": "supportive",
-      "avatar": "👩‍⚕️",
-      "design": "cute"
+      "avatar": "👩‍⚕️"
     },
     {
       "id": "ai_13",
@@ -102,8 +96,7 @@
       "name": "レナ",
       "personality": "寡黙だが終盤に鋭い指摘をする。",
       "style": "late-bloom",
-      "avatar": "👩‍💼",
-      "design": "cute"
+      "avatar": "👩‍💼"
     },
     {
       "id": "ai_15",
@@ -117,8 +110,7 @@
       "name": "エミ",
       "personality": "相手の心理を読むのが得意。",
       "style": "psychological",
-      "avatar": "👩‍🎓",
-      "design": "cute"
+      "avatar": "👩‍🎓"
     },
     {
       "id": "ai_17",
@@ -132,8 +124,7 @@
       "name": "ヒナ",
       "personality": "直感重視で思い切った投票をする。",
       "style": "instinctive",
-      "avatar": "👧🏻",
-      "design": "cute"
+      "avatar": "👧🏻"
     },
     {
       "id": "ai_19",
@@ -147,8 +138,7 @@
       "name": "ミオ",
       "personality": "慎重に情報を積み重ねる。",
       "style": "steady",
-      "avatar": "👩‍💻",
-      "design": "cute"
+      "avatar": "👩‍💻"
     }
   ]
 }

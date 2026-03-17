@@ -73,6 +73,21 @@ python3 -m http.server 8080
 # → http://localhost:8080/public/index.html にアクセス
 ```
 
+
+## 画像生成プロンプトビルダー
+
+`src/ai/image-prompt-builder.js` に、短い要望から画像生成モデル向けの完成プロンプトを生成するユーティリティを追加しています。
+
+```bash
+node -e "const b=require('./src/ai/image-prompt-builder'); console.log(b.build('可愛い雰囲気の女性キャラ'))"
+```
+
+出力は以下の固定形式です。
+- Main Prompt (EN)
+- Negative Prompt (EN)
+- Intent Summary (JP)
+- Variations (3種)
+
 ## テスト
 
 ```bash
