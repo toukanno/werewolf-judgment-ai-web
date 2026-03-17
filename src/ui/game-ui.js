@@ -1,5 +1,20 @@
 // ゲームUI操作
 const GameUI = {
+  isKawaiiCharacter(player) {
+    return player?.id === "ai_2";
+  },
+
+  renderPlayerAvatar(player) {
+    if (this.isKawaiiCharacter(player)) {
+      return `<span class="avatar kawaii-avatar" title="かわいいミサキ">${player.avatar}</span>`;
+    }
+    return `<span class="avatar">${player.avatar}</span>`;
+  },
+
+  renderPlayerLabel(player) {
+    const kawaiiBadge = this.isKawaiiCharacter(player) ? `<span class="kawaii-badge">Kawaii</span>` : "";
+    return `${this.renderPlayerAvatar(player)} ${player.name}${kawaiiBadge}`;
+  },
   updateHeader(state) {
     document.getElementById("day-count").textContent = `${state.day}日目`;
     const phaseLabel = document.getElementById("phase-label");
@@ -22,7 +37,7 @@ const GameUI = {
       const classes = ["player-chip"];
       if (!p.isAlive) classes.push("dead");
       if (p.isHuman) classes.push("is-you");
-      return `<div class="${classes.join(" ")}"><span class="avatar">${p.avatar}</span> ${p.name}</div>`;
+      return `<div class="${classes.join(" ")}">${this.renderPlayerLabel(p)}</div>`;
     }).join("");
   },
 
@@ -72,7 +87,7 @@ const GameUI = {
 
   showVoteButtons(targets, onVote) {
     const buttons = targets.map(p =>
-      `<button class="btn" data-id="${p.id}">${p.avatar} ${p.name}</button>`
+      `<button class="btn" data-id="${p.id}">${this.renderPlayerLabel(p)}</button>`
     ).join("");
     this.setAction(`<p style="font-size:12px;color:var(--text2);margin-bottom:8px;">処刑する人を選んでください</p><div class="action-buttons">${buttons}</div>`);
     document.querySelectorAll(".action-buttons .btn").forEach(btn => {
@@ -82,7 +97,7 @@ const GameUI = {
 
   showNightActionButtons(targets, actionName, onSelect) {
     const buttons = targets.map(p =>
-      `<button class="btn" data-id="${p.id}">${p.avatar} ${p.name}</button>`
+      `<button class="btn" data-id="${p.id}">${this.renderPlayerLabel(p)}</button>`
     ).join("");
     this.setAction(`<p style="font-size:12px;color:var(--text2);margin-bottom:8px;">${actionName}する対象を選んでください</p><div class="action-buttons">${buttons}</div>`);
     document.querySelectorAll(".action-buttons .btn").forEach(btn => {
@@ -114,7 +129,7 @@ const GameUI = {
       const dead = p.isAlive ? "" : " dead";
       const status = p.isAlive ? "生存" : "死亡";
       return `<div class="result-player${dead}">
-        <div>${p.avatar} ${p.name} ${p.isHuman ? "(あなた)" : ""}</div>
+        <div>${this.renderPlayerLabel(p)} ${p.isHuman ? "(あなた)" : ""}</div>
         <div class="role-name">${ROLES[p.role].name} — ${status}</div>
       </div>`;
     }).join("");

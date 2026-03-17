@@ -41,7 +41,7 @@ async function resumeGame() {
       if (player && player.isHuman) {
         GameUI.addMessage(entry.content, `🎮 ${entry.sender}`, "you");
       } else if (player) {
-        GameUI.addMessage(entry.content, `${player.avatar} ${entry.sender}`, "ai");
+        GameUI.addMessage(entry.content, GameUI.renderPlayerLabel(player), "ai");
       }
     } else {
       GameUI.addMessage(entry.content, null, "system");
@@ -122,7 +122,7 @@ async function runDayPhase() {
   for (const player of alive) {
     if (player.isHuman) continue;
     const statement = await gameLogic.getAiStatement(player);
-    GameUI.addMessage(statement, `${player.avatar} ${player.name}`, "ai");
+    GameUI.addMessage(statement, GameUI.renderPlayerLabel(player), "ai");
     gameState.addLog("statement", statement, player.name);
   }
 

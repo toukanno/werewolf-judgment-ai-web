@@ -142,6 +142,30 @@ body {
 .player-chip.is-you { border-color: var(--accent); color: var(--accent); }
 .player-chip .avatar { font-size: 16px; }
 
+.player-chip .kawaii-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff8ac2, #ffb6e1 55%, #ffd8ee);
+  box-shadow: 0 0 12px rgba(255, 138, 194, 0.45);
+  transform: translateY(-1px);
+}
+.kawaii-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: linear-gradient(135deg, #ff79b0, #ff4d95);
+  box-shadow: 0 0 8px rgba(255, 121, 176, 0.35);
+}
+
 /* メッセージエリア */
 .message-area { flex: 1; overflow-y: auto; padding: 16px; }
 .messages { display: flex; flex-direction: column; gap: 10px; }

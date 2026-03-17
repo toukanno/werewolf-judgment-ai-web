@@ -1,7 +1,7 @@
 // AIプレイヤーデータ
 const AI_PLAYERS = [
   { id: "ai_1", name: "アキラ", personality: "冷静で論理的。矛盾を見逃さない。", style: "analytical", avatar: "🧑‍💼" },
-  { id: "ai_2", name: "ミサキ", personality: "直感的で大胆。怪しいと思ったらすぐ指摘する。", style: "aggressive", avatar: "👩‍🦰" },
+  { id: "ai_2", name: "ミサキ", personality: "甘めの雰囲気で愛嬌たっぷり。直感は鋭く、怪しいと思ったら可愛くズバッと指摘する。", style: "aggressive", avatar: "🎀" },
   { id: "ai_3", name: "ユウタ", personality: "慎重で協調的。周りの意見をよく聞く。", style: "cautious", avatar: "👨‍🎓" },
   { id: "ai_4", name: "サクラ", personality: "明るくムードメーカー。場の空気を読む。", style: "social", avatar: "👧" },
   { id: "ai_5", name: "リョウ", personality: "寡黙だが鋭い観察力。発言は少ないが的確。", style: "observer", avatar: "🧔" },
