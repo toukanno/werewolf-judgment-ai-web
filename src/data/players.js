@@ -1,23 +1,23 @@
 // AIプレイヤーデータ
 const AI_PLAYERS = [
   { id: "ai_1", name: "アキラ", personality: "冷静で論理的。矛盾を見逃さない。", style: "analytical", avatar: "🧑‍💼" },
-  { id: "ai_2", name: "ミサキ", personality: "直感的で大胆。怪しいと思ったらすぐ指摘する。", style: "aggressive", avatar: "👩‍🦰" },
+  { id: "ai_2", name: "ミサキ", personality: "直感的で大胆。怪しいと思ったらすぐ指摘する。", style: "aggressive", avatar: "👩‍🦰", design: "cute" },
   { id: "ai_3", name: "ユウタ", personality: "慎重で協調的。周りの意見をよく聞く。", style: "cautious", avatar: "👨‍🎓" },
-  { id: "ai_4", name: "サクラ", personality: "明るくムードメーカー。場の空気を読む。", style: "social", avatar: "👧" },
+  { id: "ai_4", name: "サクラ", personality: "明るくムードメーカー。場の空気を読む。", style: "social", avatar: "👧", design: "cute" },
   { id: "ai_5", name: "リョウ", personality: "寡黙だが鋭い観察力。発言は少ないが的確。", style: "observer", avatar: "🧔" },
-  { id: "ai_6", name: "ハルカ", personality: "感情的で正義感が強い。味方を守る。", style: "emotional", avatar: "👩" },
+  { id: "ai_6", name: "ハルカ", personality: "感情的で正義感が強い。味方を守る。", style: "emotional", avatar: "👩", design: "cute" },
   { id: "ai_7", name: "ケンジ", personality: "疑り深く用心深い。最悪のケースを想定する。", style: "suspicious", avatar: "👨‍🔧" },
-  { id: "ai_8", name: "マイ", personality: "柔軟で適応力がある。状況に応じて戦略を変える。", style: "adaptive", avatar: "👩‍🎤" },
+  { id: "ai_8", name: "マイ", personality: "柔軟で適応力がある。状況に応じて戦略を変える。", style: "adaptive", avatar: "👩‍🎤", design: "cute" },
   { id: "ai_9", name: "タクミ", personality: "テンポ良く議論を回す進行役。", style: "facilitator", avatar: "🧑‍🏫" },
-  { id: "ai_10", name: "ナナ", personality: "小さな違和感を丁寧に拾う。", style: "careful", avatar: "👩‍🔬" },
+  { id: "ai_10", name: "ナナ", personality: "小さな違和感を丁寧に拾う。", style: "careful", avatar: "👩‍🔬", design: "cute" },
   { id: "ai_11", name: "ソウタ", personality: "数字と確率で判断する理詰め派。", style: "logical", avatar: "👨‍💻" },
-  { id: "ai_12", name: "ユイ", personality: "発言がやわらかく、味方のフォローが上手い。", style: "supportive", avatar: "👩‍⚕️" },
+  { id: "ai_12", name: "ユイ", personality: "発言がやわらかく、味方のフォローが上手い。", style: "supportive", avatar: "👩‍⚕️", design: "cute" },
   { id: "ai_13", name: "カイト", personality: "強気に殴り合う前衛タイプ。", style: "offensive", avatar: "🧑‍🚀" },
-  { id: "ai_14", name: "レナ", personality: "寡黙だが終盤に鋭い指摘をする。", style: "late-bloom", avatar: "👩‍💼" },
+  { id: "ai_14", name: "レナ", personality: "寡黙だが終盤に鋭い指摘をする。", style: "late-bloom", avatar: "👩‍💼", design: "cute" },
   { id: "ai_15", name: "ショウ", personality: "盤面整理が得意で要点をまとめる。", style: "organizer", avatar: "👨‍🏫" },
-  { id: "ai_16", name: "エミ", personality: "相手の心理を読むのが得意。", style: "psychological", avatar: "👩‍🎓" },
+  { id: "ai_16", name: "エミ", personality: "相手の心理を読むのが得意。", style: "psychological", avatar: "👩‍🎓", design: "cute" },
   { id: "ai_17", name: "トモヤ", personality: "中立的に見えて要所で決断する。", style: "balanced", avatar: "🧑‍⚖️" },
-  { id: "ai_18", name: "ヒナ", personality: "直感重視で思い切った投票をする。", style: "instinctive", avatar: "👧🏻" },
+  { id: "ai_18", name: "ヒナ", personality: "直感重視で思い切った投票をする。", style: "instinctive", avatar: "👧🏻", design: "cute" },
   { id: "ai_19", name: "ガク", personality: "序盤からライン考察を進める。", style: "line-reader", avatar: "👨‍🏭" },
-  { id: "ai_20", name: "ミオ", personality: "慎重に情報を積み重ねる。", style: "steady", avatar: "👩‍💻" }
+  { id: "ai_20", name: "ミオ", personality: "慎重に情報を積み重ねる。", style: "steady", avatar: "👩‍💻", design: "cute" }
 ];
