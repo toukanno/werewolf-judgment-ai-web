@@ -45,7 +45,8 @@ class GameState {
       isHuman: true,
       isAlive: true,
       personality: null,
-      style: null
+      style: null,
+      design: null
     });
 
     // AIプレイヤーを追加
@@ -59,7 +60,8 @@ class GameState {
         isHuman: false,
         isAlive: true,
         personality: ai.personality,
-        style: ai.style
+        style: ai.style,
+        design: ai.design || null
       });
     }
   }
