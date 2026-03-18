@@ -120,6 +120,14 @@ async function runTests() {
   assert(roles9.filter(r => r === "werewolf").length === 3, "9人戦: 人狼3人");
   assert(state9.players.length === 9, "9人戦: 全9人");
 
+
+  console.log("\n=== 11人戦 チキン配分テスト ===");
+  const state11 = new GameState();
+  state11.initPlayers("十一人目", 11);
+  const roles11 = state11.players.map(p => p.role);
+  assert(roles11.filter(r => r === "chicken").length === 1, "11人戦: チキン1人");
+  assert(roles11.filter(r => r === "villager").length === 4, "11人戦: 村人4人");
+
   console.log("\n=== 20人戦 役職配分テスト ===");
   const state20 = new GameState();
   state20.initPlayers("二十人目", 20);

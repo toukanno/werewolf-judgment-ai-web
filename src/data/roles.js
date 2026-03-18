@@ -6,26 +6,27 @@ const ROLES = {
   medium:   { id: "medium",   name: "霊能者", team: "village", ability: null, nightAction: false, appearAsWerewolf: false, description: "処刑されたプレイヤーが人狼だったかどうかを知ることができる。" },
   hunter:   { id: "hunter",   name: "狩人", team: "village", ability: null, nightAction: false, appearAsWerewolf: false, description: "村人陣営として立ち回る役職。状況整理と誘導が得意。" },
   baker:    { id: "baker",    name: "パン屋", team: "village", ability: null, nightAction: false, appearAsWerewolf: false, description: "毎日パンを焼いて村に安心感を与える村人陣営役職。" },
+  chicken:  { id: "chicken",  name: "チキン", team: "village", ability: null, nightAction: false, appearAsWerewolf: false, description: "臆病だけど朝に強い、村人陣営のにわとり。特別な能力はないが、コケコッコーで場を和ませる。" },
   werewolf: { id: "werewolf", name: "人狼", team: "werewolf", ability: "attack", nightAction: true, appearAsWerewolf: true, description: "毎晩1人を襲撃して殺害する。" }
 };
 
 const COMPOSITIONS = {
-  5:  { villager: 2, seer: 1, knight: 0, medium: 0, hunter: 0, baker: 0, werewolf: 2 },
-  6:  { villager: 3, seer: 1, knight: 0, medium: 0, hunter: 0, baker: 0, werewolf: 2 },
-  7:  { villager: 3, seer: 1, knight: 1, medium: 0, hunter: 0, baker: 0, werewolf: 2 },
-  8:  { villager: 4, seer: 1, knight: 1, medium: 0, hunter: 0, baker: 0, werewolf: 2 },
-  9:  { villager: 4, seer: 1, knight: 1, medium: 0, hunter: 0, baker: 0, werewolf: 3 },
-  10: { villager: 4, seer: 1, knight: 1, medium: 1, hunter: 0, baker: 0, werewolf: 3 },
-  11: { villager: 5, seer: 1, knight: 1, medium: 1, hunter: 0, baker: 0, werewolf: 3 },
-  12: { villager: 5, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 0, werewolf: 3 },
-  13: { villager: 6, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 0, werewolf: 3 },
-  14: { villager: 6, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 0, werewolf: 4 },
-  15: { villager: 6, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 1, werewolf: 4 },
-  16: { villager: 7, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 1, werewolf: 4 },
-  17: { villager: 8, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 1, werewolf: 4 },
-  18: { villager: 8, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 1, werewolf: 5 },
-  19: { villager: 9, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 1, werewolf: 5 },
-  20: { villager: 10, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 1, werewolf: 5 }
+  5:  { villager: 2, seer: 1, knight: 0, medium: 0, hunter: 0, baker: 0, chicken: 0, werewolf: 2 },
+  6:  { villager: 3, seer: 1, knight: 0, medium: 0, hunter: 0, baker: 0, chicken: 0, werewolf: 2 },
+  7:  { villager: 3, seer: 1, knight: 1, medium: 0, hunter: 0, baker: 0, chicken: 0, werewolf: 2 },
+  8:  { villager: 4, seer: 1, knight: 1, medium: 0, hunter: 0, baker: 0, chicken: 0, werewolf: 2 },
+  9:  { villager: 4, seer: 1, knight: 1, medium: 0, hunter: 0, baker: 0, chicken: 0, werewolf: 3 },
+  10: { villager: 4, seer: 1, knight: 1, medium: 1, hunter: 0, baker: 0, chicken: 0, werewolf: 3 },
+  11: { villager: 4, seer: 1, knight: 1, medium: 1, hunter: 0, baker: 0, chicken: 1, werewolf: 3 },
+  12: { villager: 4, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 0, chicken: 1, werewolf: 3 },
+  13: { villager: 5, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 0, chicken: 1, werewolf: 3 },
+  14: { villager: 5, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 0, chicken: 1, werewolf: 4 },
+  15: { villager: 5, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 1, chicken: 1, werewolf: 4 },
+  16: { villager: 6, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 1, chicken: 1, werewolf: 4 },
+  17: { villager: 7, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 1, chicken: 1, werewolf: 4 },
+  18: { villager: 7, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 1, chicken: 1, werewolf: 5 },
+  19: { villager: 8, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 1, chicken: 1, werewolf: 5 },
+  20: { villager: 9, seer: 1, knight: 1, medium: 1, hunter: 1, baker: 1, chicken: 1, werewolf: 5 }
 };
 
 function getCompositionText(count) {
