@@ -1,3 +1,72 @@
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function renderInlineMarkdown(text) {
+  return text
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+}
+
+function renderMarkdown(content) {
+  const safe = escapeHtml(content).replace(/\r\n/g, "\n");
+  const lines = safe.split("\n");
+  const html = [];
+  let inList = false;
+
+  const closeList = () => {
+    if (inList) {
+      html.push("</ul>");
+      inList = false;
+    }
+  };
+
+  for (const line of lines) {
+    if (!line.trim()) {
+      closeList();
+      continue;
+    }
+
+    const heading = line.match(/^(#{1,3})\s+(.+)$/);
+    if (heading) {
+      closeList();
+      const level = heading[1].length;
+      html.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`);
+      continue;
+    }
+
+    const quote = line.match(/^&gt;\s?(.+)$/);
+    if (quote) {
+      closeList();
+      html.push(`<blockquote>${renderInlineMarkdown(quote[1])}</blockquote>`);
+      continue;
+    }
+
+    const listItem = line.match(/^[-*]\s+(.+)$/);
+    if (listItem) {
+      if (!inList) {
+        html.push("<ul>");
+        inList = true;
+      }
+      html.push(`<li>${renderInlineMarkdown(listItem[1])}</li>`);
+      continue;
+    }
+
+    closeList();
+    html.push(`<p>${renderInlineMarkdown(line)}</p>`);
+  }
+
+  closeList();
+  return html.join("");
+}
+
 // ゲームUI操作
 const GameUI = {
   updateHeader(state) {
@@ -35,10 +104,12 @@ const GameUI = {
     if (type === "you") classes.push("you");
     msg.className = classes.join(" ");
 
+    const renderedContent = renderMarkdown(content);
+
     if (sender && type !== "system" && type !== "danger") {
-      msg.innerHTML = `<div class="msg-name">${sender}</div><div>${content}</div>`;
+      msg.innerHTML = `<div class="msg-name">${escapeHtml(sender)}</div><div class="msg-body markdown-body">${renderedContent}</div>`;
     } else {
-      msg.textContent = content;
+      msg.innerHTML = `<div class="msg-body markdown-body">${renderedContent}</div>`;
     }
     msgs.appendChild(msg);
     document.getElementById("message-area").scrollTop = document.getElementById("message-area").scrollHeight;
