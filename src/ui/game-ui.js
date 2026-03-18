@@ -16,6 +16,34 @@ const GameUI = {
     document.getElementById("alive-count").textContent = state.getAlive().length;
   },
 
+  updateRolePanel(state) {
+    const human = state.getHuman();
+    if (!human) return;
+
+    const role = ROLES[human.role];
+    const nameEl = document.getElementById("role-panel-name");
+    const descEl = document.getElementById("role-panel-description");
+    const teamEl = document.getElementById("role-panel-team");
+    if (!nameEl || !descEl || !teamEl) return;
+
+    nameEl.textContent = `${human.avatar} ${role.name}`;
+
+    const hints = [role.description];
+    if (!human.isAlive) {
+      hints.push("現在は死亡しているため、以降は観戦モードです。");
+    } else if (role.ability === "guard" && state.lastGuardTarget) {
+      const guarded = state.getPlayerById(state.lastGuardTarget);
+      if (guarded) hints.push(`前夜の護衛先: ${guarded.name}`);
+    } else if (role.ability === "attack") {
+      const allies = state.getAliveWerewolves().filter(p => p.id !== human.id);
+      hints.push(allies.length ? `仲間の人狼: ${allies.map(p => p.name).join("、")}` : "現在、生存している仲間の人狼はいません。");
+    }
+
+    descEl.textContent = hints.join(" ");
+    teamEl.textContent = role.team === "werewolf" ? "人狼陣営" : "村人陣営";
+    teamEl.className = `role-panel-team ${role.team}`;
+  },
+
   renderPlayers(state) {
     const list = document.getElementById("player-list");
     list.innerHTML = state.players.map(p => {

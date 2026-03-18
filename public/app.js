@@ -32,6 +32,7 @@ async function resumeGame() {
   showScreen("game");
   GameUI.clearMessages();
   GameUI.updateHeader(gameState);
+  GameUI.updateRolePanel(gameState);
   GameUI.renderPlayers(gameState);
 
   // 保存されたログを再表示
@@ -85,6 +86,7 @@ async function startGame() {
   showScreen("game");
   GameUI.clearMessages();
   GameUI.updateHeader(gameState);
+  GameUI.updateRolePanel(gameState);
   GameUI.renderPlayers(gameState);
 
   // 役職通知
@@ -110,6 +112,7 @@ async function startGame() {
 async function runDayPhase() {
   gameState.phase = "day";
   GameUI.updateHeader(gameState);
+  GameUI.updateRolePanel(gameState);
 
   if (gameState.day === 1) {
     GameUI.addMessage("☀️ 1日目の朝です。今日は処刑はありません。自己紹介をしましょう。", null, "system");
@@ -161,6 +164,7 @@ async function runDayPhase() {
 async function runVotePhase() {
   gameState.phase = "vote";
   GameUI.updateHeader(gameState);
+  GameUI.updateRolePanel(gameState);
   GameUI.addMessage("🗳️ 投票の時間です。処刑する人を選んでください。", null, "system");
 
   const alive = gameState.getAlive();
@@ -210,6 +214,7 @@ async function runVotePhase() {
   GameUI.addMessage(`${executed.name} が処刑されました。役職は【${ROLES[executed.role].name}】でした。`, null, "danger");
   gameState.killPlayer(executedId);
   GameUI.renderPlayers(gameState);
+  GameUI.updateRolePanel(gameState);
 
   // 勝敗判定
   const winner = gameState.checkWinCondition();
@@ -228,6 +233,7 @@ async function runVotePhase() {
 async function runNightPhase() {
   gameState.phase = "night";
   GameUI.updateHeader(gameState);
+  GameUI.updateRolePanel(gameState);
   GameUI.addMessage(`🌙 ${gameState.day}日目の夜です。静かに能力を行使してください...`, null, "system");
 
   const alive = gameState.getAlive();
@@ -301,6 +307,7 @@ async function runNightPhase() {
   gameState.day++;
   gameState.phase = "day";
   GameUI.updateHeader(gameState);
+  GameUI.updateRolePanel(gameState);
 
   // 襲撃結果
   if (result.killed) {
@@ -310,6 +317,7 @@ async function runNightPhase() {
     }
     GameUI.addMessage(`${killed.name} が無残な姿で発見されました...`, null, "danger");
     GameUI.renderPlayers(gameState);
+    GameUI.updateRolePanel(gameState);
   } else {
     GameUI.addMessage("昨晩は誰も襲撃されませんでした。", null, "system");
   }
