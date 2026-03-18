@@ -88,6 +88,17 @@ node -e "const b=require('./src/ai/image-prompt-builder'); console.log(b.build('
 - Intent Summary (JP)
 - Variations (3種)
 
+## Markdown表示
+
+ゲーム中のメッセージ欄は簡易 Markdown 表示に対応しています。AI の発言やシステムメッセージで次の記法を使えます。
+
+- 見出し: `#` / `##` / `###`
+- 強調: `**太字**` / `*斜体*`
+- コード: `` `code` ``
+- リスト: `- item`
+- 引用: `> quote`
+- リンク: `[OpenRouter](https://openrouter.ai/)`
+
 ## テスト
 
 ```bash
