@@ -9,6 +9,9 @@
 <body>
 <div id="app">
 
+  <div class="ornate-frame frame-top" aria-hidden="true"></div>
+  <div class="ornate-frame frame-bottom" aria-hidden="true"></div>
+
   <!-- ===== 復帰バナー ===== -->
   <div id="resume-banner" class="resume-banner" style="display:none;">
     <p>前回のゲームが見つかりました</p>
@@ -20,69 +23,124 @@
 
   <!-- ===== トップ画面 ===== -->
   <section id="screen-title" class="screen active">
-    <div class="title-container">
-      <h1 class="title-logo">🐺 人狼AI対戦</h1>
-      <p class="title-sub">Werewolf Judgment AI</p>
-      <p class="title-desc">AIプレイヤーと人狼ゲームで対戦しよう</p>
-      <button class="btn btn-primary btn-lg" onclick="showScreen('lobby')">ゲームを始める</button>
+    <div class="mobile-shell title-shell">
+      <header class="status-bar">
+        <span class="status-time">19:37</span>
+        <div class="status-icons">
+          <span>📶 4G</span>
+          <span class="battery">34%</span>
+        </div>
+      </header>
+
+      <div class="ad-banner" aria-hidden="true">
+        <span class="ad-chip">▶</span>
+        <span class="ad-strip"></span>
+      </div>
+
+      <div class="title-hero">
+        <div class="snow snow-a"></div>
+        <div class="snow snow-b"></div>
+        <div class="hero-vignette"></div>
+        <div class="title-castle"></div>
+        <div class="title-logo-wrap">
+          <p class="title-kicker">Werewolf Judgment AI</p>
+          <h1 class="title-logo">人狼<br>ジャッジメント</h1>
+          <p class="title-desc">雪の森に包まれた館で、AIプレイヤーとの心理戦が始まる。</p>
+        </div>
+
+        <div class="title-actions">
+          <button class="btn btn-start" onclick="showScreen('lobby')">START</button>
+          <div class="title-meta">
+            <span>午前0時 全回復</span>
+            <div class="life-gauge" aria-label="ライフ">
+              <span class="heart full">♥</span>
+              <span class="heart full">♥</span>
+              <span class="heart full">♥</span>
+              <span class="heart full">♥</span>
+              <span class="heart">♥</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="title-footer">
+        <div class="brand-row">
+          <span>© sorgiro</span>
+          <span>0.9.151</span>
+        </div>
+        <nav class="bottom-nav" aria-label="メニュー">
+          <button class="nav-item" type="button"><span class="nav-icon">💰</span><span>ショップ</span></button>
+          <button class="nav-item" type="button"><span class="nav-icon">🤝</span><span>友達</span></button>
+          <button class="nav-item" type="button"><span class="nav-icon">🪶</span><span>戦績</span></button>
+          <button class="nav-item" type="button"><span class="nav-icon">⚔️</span><span>対戦ログ</span></button>
+          <button class="nav-item" type="button"><span class="nav-icon">🏆</span><span>ランキング</span></button>
+          <button class="nav-item" type="button"><span class="nav-icon">⚙️</span><span>設定</span></button>
+        </nav>
+      </footer>
     </div>
   </section>
 
   <!-- ===== ロビー画面 ===== -->
   <section id="screen-lobby" class="screen">
-    <div class="lobby-container">
-      <h2>🏠 ロビー</h2>
-
-      <div class="lobby-section">
-        <h3>参加人数</h3>
-        <div class="player-count-selector">
-          <button class="btn btn-count active" data-count="5" onclick="selectPlayerCount(5)">5人</button>
-          <button class="btn btn-count" data-count="6" onclick="selectPlayerCount(6)">6人</button>
-          <button class="btn btn-count" data-count="7" onclick="selectPlayerCount(7)">7人</button>
-          <button class="btn btn-count" data-count="8" onclick="selectPlayerCount(8)">8人</button>
-          <button class="btn btn-count" data-count="9" onclick="selectPlayerCount(9)">9人</button>
-          <button class="btn btn-count" data-count="10" onclick="selectPlayerCount(10)">10人</button>
-          <button class="btn btn-count" data-count="11" onclick="selectPlayerCount(11)">11人</button>
-          <button class="btn btn-count" data-count="12" onclick="selectPlayerCount(12)">12人</button>
-          <button class="btn btn-count" data-count="13" onclick="selectPlayerCount(13)">13人</button>
-          <button class="btn btn-count" data-count="14" onclick="selectPlayerCount(14)">14人</button>
-          <button class="btn btn-count" data-count="15" onclick="selectPlayerCount(15)">15人</button>
-          <button class="btn btn-count" data-count="16" onclick="selectPlayerCount(16)">16人</button>
-          <button class="btn btn-count" data-count="17" onclick="selectPlayerCount(17)">17人</button>
-          <button class="btn btn-count" data-count="18" onclick="selectPlayerCount(18)">18人</button>
-          <button class="btn btn-count" data-count="19" onclick="selectPlayerCount(19)">19人</button>
-          <button class="btn btn-count" data-count="20" onclick="selectPlayerCount(20)">20人</button>
+    <div class="mobile-shell inner-shell">
+      <div class="panel lobby-container">
+        <div class="panel-header">
+          <p class="panel-kicker">Preparation Room</p>
+          <h2>対戦準備</h2>
+          <p class="panel-text">プレイヤー人数・名前・AI設定を選び、館での一戦を始めましょう。</p>
         </div>
-        <div id="composition-info" class="composition-info"></div>
-      </div>
 
-      <div class="lobby-section">
-        <h3>あなたの名前</h3>
-        <input type="text" id="player-name" class="input" placeholder="名前を入力" value="プレイヤー">
-      </div>
-
-      <div class="lobby-section">
-        <h3>🔑 APIキー設定</h3>
-        <p class="hint">OpenRouter APIキーを入力するとAIが発言します。未入力でもモックAIで遊べます。</p>
-        <input type="password" id="api-key" class="input" placeholder="sk-or-v1-...">
-        <div class="api-key-actions">
-          <button class="btn btn-sm" onclick="testApiKey()">テスト接続</button>
-          <button class="btn btn-sm" onclick="clearApiKey()">クリア</button>
+        <div class="lobby-section">
+          <h3>参加人数</h3>
+          <div class="player-count-selector">
+            <button class="btn btn-count active" data-count="5" onclick="selectPlayerCount(5)">5人</button>
+            <button class="btn btn-count" data-count="6" onclick="selectPlayerCount(6)">6人</button>
+            <button class="btn btn-count" data-count="7" onclick="selectPlayerCount(7)">7人</button>
+            <button class="btn btn-count" data-count="8" onclick="selectPlayerCount(8)">8人</button>
+            <button class="btn btn-count" data-count="9" onclick="selectPlayerCount(9)">9人</button>
+            <button class="btn btn-count" data-count="10" onclick="selectPlayerCount(10)">10人</button>
+            <button class="btn btn-count" data-count="11" onclick="selectPlayerCount(11)">11人</button>
+            <button class="btn btn-count" data-count="12" onclick="selectPlayerCount(12)">12人</button>
+            <button class="btn btn-count" data-count="13" onclick="selectPlayerCount(13)">13人</button>
+            <button class="btn btn-count" data-count="14" onclick="selectPlayerCount(14)">14人</button>
+            <button class="btn btn-count" data-count="15" onclick="selectPlayerCount(15)">15人</button>
+            <button class="btn btn-count" data-count="16" onclick="selectPlayerCount(16)">16人</button>
+            <button class="btn btn-count" data-count="17" onclick="selectPlayerCount(17)">17人</button>
+            <button class="btn btn-count" data-count="18" onclick="selectPlayerCount(18)">18人</button>
+            <button class="btn btn-count" data-count="19" onclick="selectPlayerCount(19)">19人</button>
+            <button class="btn btn-count" data-count="20" onclick="selectPlayerCount(20)">20人</button>
+          </div>
+          <div id="composition-info" class="composition-info"></div>
         </div>
-        <div id="api-key-status" class="api-status"></div>
-      </div>
 
-      <div class="lobby-actions">
-        <button class="btn" onclick="showScreen('title')">戻る</button>
-        <button class="btn btn-primary" onclick="startGame()">ゲーム開始</button>
+        <div class="lobby-section">
+          <h3>あなたの名前</h3>
+          <input type="text" id="player-name" class="input" placeholder="名前を入力" value="プレイヤー">
+        </div>
+
+        <div class="lobby-section">
+          <h3>AI接続設定</h3>
+          <p class="hint">OpenRouter APIキーを入力するとAIが発言します。未入力でもモックAIで遊べます。</p>
+          <input type="password" id="api-key" class="input" placeholder="sk-or-v1-...">
+          <div class="api-key-actions">
+            <button class="btn btn-sm" onclick="testApiKey()">テスト接続</button>
+            <button class="btn btn-sm" onclick="clearApiKey()">クリア</button>
+          </div>
+          <div id="api-key-status" class="api-status"></div>
+        </div>
+
+        <div class="lobby-actions">
+          <button class="btn" onclick="showScreen('title')">戻る</button>
+          <button class="btn btn-primary" onclick="startGame()">ゲーム開始</button>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- ===== ゲーム画面 ===== -->
   <section id="screen-game" class="screen">
-    <div class="game-container">
-      <header class="game-header">
+    <div class="mobile-shell inner-shell game-container">
+      <header class="game-header panel">
         <div class="game-info">
           <span id="day-count">1日目</span>
           <span id="phase-label" class="phase-badge phase-day">☀️ 昼</span>
@@ -92,30 +150,26 @@
         </div>
       </header>
 
-      <!-- プレイヤー一覧 -->
-      <div id="player-list" class="player-list"></div>
-
-      <!-- メッセージエリア -->
-      <div id="message-area" class="message-area">
+      <div id="player-list" class="player-list panel"></div>
+      <div id="message-area" class="message-area panel">
         <div id="messages" class="messages"></div>
       </div>
-
-      <!-- アクションエリア -->
-      <div id="action-area" class="action-area">
-        <!-- 動的にボタンやフォームが入る -->
-      </div>
+      <div id="action-area" class="action-area panel"></div>
     </div>
   </section>
 
   <!-- ===== 結果画面 ===== -->
   <section id="screen-result" class="screen">
-    <div class="result-container">
-      <h2 id="result-title" class="result-title"></h2>
-      <p id="result-message" class="result-message"></p>
-      <div id="result-players" class="result-players"></div>
-      <div class="result-actions">
-        <button class="btn btn-primary btn-lg" onclick="showScreen('lobby')">もう一度遊ぶ</button>
-        <button class="btn" onclick="showScreen('title')">トップに戻る</button>
+    <div class="mobile-shell inner-shell">
+      <div class="panel result-container">
+        <p class="panel-kicker">Judgment Result</p>
+        <h2 id="result-title" class="result-title"></h2>
+        <p id="result-message" class="result-message"></p>
+        <div id="result-players" class="result-players"></div>
+        <div class="result-actions">
+          <button class="btn btn-primary btn-lg" onclick="showScreen('lobby')">もう一度遊ぶ</button>
+          <button class="btn" onclick="showScreen('title')">トップに戻る</button>
+        </div>
       </div>
     </div>
   </section>
