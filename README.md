@@ -84,3 +84,7 @@ node test/game-test.js
 ## ライセンス
 
 MIT
+
+## License
+
+MIT
