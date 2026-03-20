@@ -135,6 +135,11 @@ class GameState {
     });
   }
 
+  // Backward-compatible alias
+  getAliveVillagers() {
+    return this.getAliveVillageTeam();
+  }
+
   getAliveWerewolves() {
     return this.getAlive().filter(p => {
       const role = ROLES[this.getEffectiveRole(p.id)];

@@ -1925,6 +1925,9 @@ const DEFAULT_PRESETS = {
   }
 };
 
+// Backward-compatible alias used by older tests / callers
+const COMPOSITIONS = DEFAULT_PRESETS;
+
 /**
  * Get composition text for display
  * @param {Object} composition - Role ID to count mapping
@@ -2036,6 +2039,7 @@ const _rolesExport = {
   TEAM_INFO,
   ROLES,
   ROLE_CATEGORIES,
+  COMPOSITIONS,
   DEFAULT_PRESETS,
   getTeamLabel,
   getCompositionText,
@@ -2044,3 +2048,11 @@ const _rolesExport = {
   getTotalRoleCount,
   validateComposition
 };
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = _rolesExport;
+}
+
+if (typeof globalThis !== 'undefined') {
+  Object.assign(globalThis, _rolesExport);
+}
