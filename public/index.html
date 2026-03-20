@@ -24,19 +24,69 @@
 
   <!-- ===== タイトル画面 ===== -->
   <section id="screen-title" class="screen active">
-    <div class="title-container">
-      <div class="title-icon">🐺</div>
-      <h1 class="title-logo">人狼ジャッジメントAI</h1>
-      <p class="title-sub">Werewolf Judgment AI</p>
-      <p class="title-desc">AIプレイヤーと人狼ゲームで対戦</p>
-      <button class="btn btn-primary btn-lg" onclick="showScreen('lobby')">ゲーム開始</button>
+    <div class="title-container title-shell">
+      <div class="title-copy">
+        <div class="title-kicker">AI SOCIAL DEDUCTION EXPERIENCE</div>
+        <div class="title-icon">🐺</div>
+        <h1 class="title-logo">人狼ジャッジメントAI</h1>
+        <p class="title-sub">Werewolf Judgment AI</p>
+        <p class="title-desc">会話・推理・投票がテンポ良く進む、ダークネオン調の人狼バトル。</p>
+        <div class="title-actions">
+          <button class="btn btn-primary btn-lg" onclick="showScreen('lobby')">ゲーム開始</button>
+          <button class="btn btn-ghost btn-lg" onclick="showScreen('lobby')">設定を見る</button>
+        </div>
+      </div>
+      <div class="title-panel">
+        <div class="title-panel-badge">QUICK START</div>
+        <div class="title-feature-grid">
+          <div class="title-feature-card">
+            <span class="feature-icon">🗣️</span>
+            <div>
+              <strong>自然な会話ログ</strong>
+              <p>AIプレイヤーが昼議論を進行し、発言がチャット形式で流れます。</p>
+            </div>
+          </div>
+          <div class="title-feature-card">
+            <span class="feature-icon">🎭</span>
+            <div>
+              <strong>多彩な役職構成</strong>
+              <p>5〜20人村まで対応し、標準・上級・カスタム編成を選べます。</p>
+            </div>
+          </div>
+          <div class="title-feature-card">
+            <span class="feature-icon">⚡</span>
+            <div>
+              <strong>APIキー不要でもOK</strong>
+              <p>すぐ遊べるプログラムAI搭載。必要なら外部AI連携も可能です。</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- ===== ロビー画面 ===== -->
   <section id="screen-lobby" class="screen">
     <div class="lobby-container">
-      <h2>⚙ ゲーム設定</h2>
+      <div class="lobby-hero">
+        <div>
+          <p class="section-label">MATCH SETUP</p>
+          <h2>⚙ ゲーム設定</h2>
+          <p class="lobby-lead">人数・役職・名前・AI設定をまとめて調整できます。まずは人数を選ぶだけでもすぐ始められます。</p>
+        </div>
+        <div class="lobby-summary-cards">
+          <div class="summary-card">
+            <span class="summary-label">推奨開始</span>
+            <strong>5〜9人</strong>
+            <p>短時間でテンポ良く遊びたい方向け</p>
+          </div>
+          <div class="summary-card">
+            <span class="summary-label">おすすめ設定</span>
+            <strong>スタンダード</strong>
+            <p>初回プレイでも役割把握がしやすい編成</p>
+          </div>
+        </div>
+      </div>
 
       <div class="lobby-section">
         <h3>参加人数</h3>
