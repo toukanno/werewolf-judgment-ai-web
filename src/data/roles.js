@@ -10,6 +10,7 @@ const TEAMS = {
   FOX: 'fox',
   LOVER: 'lover',
   ZOMBIE: 'zombie',
+  DEVIL: 'devil',
   OTHER: 'other'
 };
 
@@ -39,6 +40,11 @@ const TEAM_INFO = {
     name: 'ゾンビ陣営',
     color: '#558b2f',
     displayColor: '#558b2f'
+  },
+  devil: {
+    name: '悪魔陣営',
+    color: '#6a0080',
+    displayColor: '#6a0080'
   },
   other: {
     name: 'その他',
@@ -742,6 +748,897 @@ const ROLES = {
     color: '#c62828',
     icon: '🎅',
     category: 'その他'
+  },
+
+  // 市民陣営 new roles
+  detective: {
+    id: 'detective',
+    name: '名探偵',
+    team: TEAMS.VILLAGE,
+    ability: 'investigate',
+    nightAction: true,
+    appearAsWerewolf: false,
+    description: '毎晩一人を調査し、その人の正確な役職を知ることができる。',
+    color: '#546e7a',
+    icon: '🔍',
+    category: '市民陣営（特殊）'
+  },
+
+  itako: {
+    id: 'itako',
+    name: 'イタコ',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '死者と交信できる。死者の役職を知ることができる。',
+    color: '#7986cb',
+    icon: '🔮',
+    category: '市民陣営（特殊）'
+  },
+
+  father: {
+    id: 'father',
+    name: '神父',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '処刑投票時、自分への投票者を知ることができる。',
+    color: '#78909c',
+    icon: '⛪',
+    category: '市民陣営（特殊）'
+  },
+
+  housekeeper: {
+    id: 'housekeeper',
+    name: '家政婦',
+    team: TEAMS.VILLAGE,
+    ability: 'housekeep',
+    nightAction: true,
+    appearAsWerewolf: false,
+    description: '毎晩一人の家を訪問し、その人への訪問者を知ることができる。',
+    color: '#a1887f',
+    icon: '🏠',
+    category: '市民陣営（特殊）'
+  },
+
+  wanderer: {
+    id: 'wanderer',
+    name: '風来坊',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '投票先を公開しない。誰に投票したか他のプレイヤーには分からない。',
+    color: '#8d6e63',
+    icon: '🌀',
+    category: '市民陣営（特殊）'
+  },
+
+  poet: {
+    id: 'poet',
+    name: '詩人',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '死亡時にポエムを残す。ポエムの内容から情報を推理できる。',
+    color: '#b39ddb',
+    icon: '📝',
+    category: '市民陣営（特殊）'
+  },
+
+  talkativeHunter: {
+    id: 'talkativeHunter',
+    name: '饒舌な狩人',
+    team: TEAMS.VILLAGE,
+    ability: 'guard',
+    nightAction: true,
+    appearAsWerewolf: false,
+    description: '狩人と同じ能力を持つが、毎日指定された単語を発言しないと死亡する。',
+    color: '#ff8f00',
+    icon: '🛡',
+    category: '市民陣営（特殊）'
+  },
+
+  princess: {
+    id: 'princess',
+    name: 'プリンセス',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '処刑されると、投票した人の中からランダムで一人が道連れになる。',
+    color: '#f48fb1',
+    icon: '👸',
+    category: '市民陣営（特殊）'
+  },
+
+  newspaper: {
+    id: 'newspaper',
+    name: '新聞配達',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '死亡した翌朝、遺言を届けることができる。',
+    color: '#90a4ae',
+    icon: '📰',
+    category: '市民陣営（特殊）'
+  },
+
+  gambler: {
+    id: 'gambler',
+    name: 'ギャンブラー',
+    team: TEAMS.VILLAGE,
+    ability: 'gamble',
+    nightAction: true,
+    appearAsWerewolf: false,
+    description: '毎晩一人を選び、その人の役職を当てる。当たれば生存、外れれば死亡。',
+    color: '#ffd54f',
+    icon: '🎰',
+    category: '市民陣営（特殊）'
+  },
+
+  ironLady: {
+    id: 'ironLady',
+    name: '鉄の女',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '投票では処刑されない。襲撃でのみ死亡する。',
+    color: '#607d8b',
+    icon: '🔩',
+    category: '市民陣営（特殊）'
+  },
+
+  happyOwl: {
+    id: 'happyOwl',
+    name: '幸福の梟',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '護衛が成功した場合、護衛された人に通知される。',
+    color: '#fff176',
+    icon: '🦉',
+    category: '市民陣営（特殊）'
+  },
+
+  wolfHunter: {
+    id: 'wolfHunter',
+    name: '狼憑きの狩人',
+    team: TEAMS.VILLAGE,
+    ability: 'guard',
+    nightAction: true,
+    appearAsWerewolf: true,
+    description: '狩人と同じ能力を持つが、占いでは人狼と判定される。',
+    color: '#6d4c41',
+    icon: '🐕',
+    category: '市民陣営（特殊）'
+  },
+
+  nobleSon: {
+    id: 'nobleSon',
+    name: '貴族の息子',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '貴族と対になっており、貴族が死亡すると能力を継承する。',
+    color: '#ffcc02',
+    icon: '👑',
+    category: '市民陣営（ペア）'
+  },
+
+  annoyingHunter: {
+    id: 'annoyingHunter',
+    name: '迷惑な狩人',
+    team: TEAMS.VILLAGE,
+    ability: 'guard',
+    nightAction: true,
+    appearAsWerewolf: false,
+    description: '護衛に成功すると護衛対象も自分も死亡する。',
+    color: '#bf360c',
+    icon: '💥',
+    category: '市民陣営（特殊）'
+  },
+
+  dualPistol: {
+    id: 'dualPistol',
+    name: '二丁拳銃',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '処刑時に二人を道連れにできる。',
+    color: '#455a64',
+    icon: '🔫',
+    category: '市民陣営（特殊）'
+  },
+
+  whisperTwin: {
+    id: 'whisperTwin',
+    name: 'ささやく双子',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '双子同士で夜にささやき合うことができる。',
+    color: '#80cbc4',
+    icon: '👯',
+    category: '市民陣営（ペア）'
+  },
+
+  paladin: {
+    id: 'paladin',
+    name: '聖騎士',
+    team: TEAMS.VILLAGE,
+    ability: 'paladinCheck',
+    nightAction: true,
+    appearAsWerewolf: false,
+    description: '毎晩一人を選び、その人が人狼陣営かどうかを知ることができる。',
+    color: '#ffd600',
+    icon: '⚔',
+    category: '市民陣営（特殊）'
+  },
+
+  leader: {
+    id: 'leader',
+    name: '指導者',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '死亡すると全員の投票先が公開される。',
+    color: '#0277bd',
+    icon: '📢',
+    category: '市民陣営（特殊）'
+  },
+
+  gravePriest: {
+    id: 'gravePriest',
+    name: '墓場の司祭',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '死者の数だけ投票数が増える。',
+    color: '#37474f',
+    icon: '⛪',
+    category: '市民陣営（特殊）'
+  },
+
+  magicalGirl: {
+    id: 'magicalGirl',
+    name: '魔法少女',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '死亡すると人狼を一人道連れにする。',
+    color: '#e040fb',
+    icon: '✨',
+    category: '市民陣営（特殊）'
+  },
+
+  chicken: {
+    id: 'chicken',
+    name: 'チキン',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '最初の投票で最多票になると逃亡して死亡する。',
+    color: '#ffab40',
+    icon: '🐔',
+    category: '市民陣営（特殊）'
+  },
+
+  fakeQueen: {
+    id: 'fakeQueen',
+    name: '偽女王',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '女王と同じように見えるが、死亡しても他のプレイヤーは死亡しない。',
+    color: '#ffc107',
+    icon: '👸',
+    category: '市民陣営（トリック）'
+  },
+
+  matchSeller: {
+    id: 'matchSeller',
+    name: 'マッチ売り',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '襲撃されると、翌日の投票が無効になる。',
+    color: '#ff7043',
+    icon: '🔥',
+    category: '市民陣営（特殊）'
+  },
+
+  lightApostle: {
+    id: 'lightApostle',
+    name: '光の使徒',
+    team: TEAMS.VILLAGE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '処刑されると翌日が平和になる（襲撃が発生しない）。',
+    color: '#fff9c4',
+    icon: '☀',
+    category: '市民陣営（特殊）'
+  },
+
+  // 人狼陣営 new roles
+  newSpeciesWolf: {
+    id: 'newSpeciesWolf',
+    name: '新種の人狼',
+    team: TEAMS.WEREWOLF,
+    ability: 'attack',
+    nightAction: true,
+    appearAsWerewolf: false,
+    description: '占いでも霊能でも人狼と判定されない特殊な人狼。',
+    color: '#880e4f',
+    icon: '🐺',
+    category: '人狼陣営（特殊）'
+  },
+
+  devotedWolf: {
+    id: 'devotedWolf',
+    name: '一途な人狼',
+    team: TEAMS.WEREWOLF,
+    ability: 'attack',
+    nightAction: true,
+    appearAsWerewolf: true,
+    description: '毎晩同じ人しか襲撃できない。',
+    color: '#ad1457',
+    icon: '🐺',
+    category: '人狼陣営（特殊）'
+  },
+
+  loneWolf: {
+    id: 'loneWolf',
+    name: '一匹狼',
+    team: TEAMS.WEREWOLF,
+    ability: 'attack',
+    nightAction: true,
+    appearAsWerewolf: true,
+    description: '他の人狼と会話できない孤独な人狼。',
+    color: '#6a1b9a',
+    icon: '🐺',
+    category: '人狼陣営（特殊）'
+  },
+
+  mindEyeWolf: {
+    id: 'mindEyeWolf',
+    name: '心眼の人狼',
+    team: TEAMS.WEREWOLF,
+    ability: 'attack',
+    nightAction: true,
+    appearAsWerewolf: true,
+    description: '襲撃対象の役職を知ることができる。',
+    color: '#4a148c',
+    icon: '👁',
+    category: '人狼陣営（特殊）'
+  },
+
+  gamblingWolf: {
+    id: 'gamblingWolf',
+    name: 'ギャンブル狼',
+    team: TEAMS.WEREWOLF,
+    ability: 'attack',
+    nightAction: true,
+    appearAsWerewolf: true,
+    description: '襲撃成功で能力強化、失敗で弱体化する。',
+    color: '#f9a825',
+    icon: '🎲',
+    category: '人狼陣営（特殊）'
+  },
+
+  wolfKing: {
+    id: 'wolfKing',
+    name: '人狼王',
+    team: TEAMS.WEREWOLF,
+    ability: 'attack',
+    nightAction: true,
+    appearAsWerewolf: true,
+    description: '処刑されると一人を道連れにできる人狼。',
+    color: '#b71c1c',
+    icon: '👑',
+    category: '人狼陣営（特殊）'
+  },
+
+  corneredWolf: {
+    id: 'corneredWolf',
+    name: '窮地の人狼',
+    team: TEAMS.WEREWOLF,
+    ability: 'attack',
+    nightAction: true,
+    appearAsWerewolf: true,
+    description: '最後の人狼になると能力が強化される。',
+    color: '#d50000',
+    icon: '🐺',
+    category: '人狼陣営（特殊）'
+  },
+
+  curseWolf: {
+    id: 'curseWolf',
+    name: '呪狼',
+    team: TEAMS.WEREWOLF,
+    ability: 'attack',
+    nightAction: true,
+    appearAsWerewolf: true,
+    description: '占われると占い師が死亡する。',
+    color: '#311b92',
+    icon: '💜',
+    category: '人狼陣営（特殊）'
+  },
+
+  wolfGirl: {
+    id: 'wolfGirl',
+    name: '狼少女',
+    team: TEAMS.WEREWOLF,
+    ability: 'attack',
+    nightAction: true,
+    appearAsWerewolf: true,
+    description: '人狼の中で最も若い。特定条件で能力が発動する。',
+    color: '#e91e63',
+    icon: '🐺',
+    category: '人狼陣営（特殊）'
+  },
+
+  rebelMadman: {
+    id: 'rebelMadman',
+    name: '反逆の狂人',
+    team: TEAMS.WEREWOLF,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '人狼陣営だが、最終日に生き残ると村人陣営に寝返る。',
+    color: '#ff5722',
+    icon: '🃏',
+    category: '人狼陣営（同盟）'
+  },
+
+  bombMadman: {
+    id: 'bombMadman',
+    name: '爆弾狂',
+    team: TEAMS.WEREWOLF,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '処刑されると周囲のプレイヤーを巻き込んで爆発する。',
+    color: '#ff3d00',
+    icon: '💣',
+    category: '人狼陣営（同盟）'
+  },
+
+  corruptPolitician: {
+    id: 'corruptPolitician',
+    name: '悪徳政治家',
+    team: TEAMS.WEREWOLF,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '投票数を操作できる。',
+    color: '#37474f',
+    icon: '🏛',
+    category: '人狼陣営（同盟）'
+  },
+
+  wolfDescendant: {
+    id: 'wolfDescendant',
+    name: '人狼の末裔',
+    team: TEAMS.WEREWOLF,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '全ての人狼が死亡すると人狼に変化する。',
+    color: '#880e4f',
+    icon: '🐺',
+    category: '人狼陣営（同盟）'
+  },
+
+  darkSeer: {
+    id: 'darkSeer',
+    name: '黒い占い師',
+    team: TEAMS.WEREWOLF,
+    ability: 'darkDivine',
+    nightAction: true,
+    appearAsWerewolf: false,
+    description: '占い師と同じ能力を持つが人狼陣営。',
+    color: '#1a237e',
+    icon: '🔮',
+    category: '人狼陣営（特殊）'
+  },
+
+  seductiveFollower: {
+    id: 'seductiveFollower',
+    name: '誘惑の狼信者',
+    team: TEAMS.WEREWOLF,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '処刑されると投票した人を人狼陣営に引き込む。',
+    color: '#c2185b',
+    icon: '💋',
+    category: '人狼陣営（同盟）'
+  },
+
+  sealFollower: {
+    id: 'sealFollower',
+    name: '封魔の狼信者',
+    team: TEAMS.WEREWOLF,
+    ability: 'seal',
+    nightAction: true,
+    appearAsWerewolf: false,
+    description: '毎晩一人の能力を封印できる。',
+    color: '#4527a0',
+    icon: '🔒',
+    category: '人狼陣営（特殊）'
+  },
+
+  queenImpersonator: {
+    id: 'queenImpersonator',
+    name: '女王騙り',
+    team: TEAMS.WEREWOLF,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '女王のふりをする人狼陣営。処刑されても女王効果は発動しない。',
+    color: '#f50057',
+    icon: '👸',
+    category: '人狼陣営（同盟）'
+  },
+
+  darkIncarnation: {
+    id: 'darkIncarnation',
+    name: '闇の化身',
+    team: TEAMS.WEREWOLF,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '人狼陣営の勝利条件を満たすと特殊勝利する。',
+    color: '#12005e',
+    icon: '🌑',
+    category: '人狼陣営（特殊）'
+  },
+
+  // 妖狐陣営 new roles
+  traitor: {
+    id: 'traitor',
+    name: '背信者',
+    team: TEAMS.FOX,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '妖狐と相互認識できる。妖狐陣営の勝利を目指す。',
+    color: '#e65100',
+    icon: '🦊',
+    category: '妖狐陣営'
+  },
+
+  nineTailFox: {
+    id: 'nineTailFox',
+    name: '九尾の狐',
+    team: TEAMS.FOX,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '占われても一度だけ死亡を回避できる強力な妖狐。',
+    color: '#ff6d00',
+    icon: '🦊',
+    category: '妖狐陣営'
+  },
+
+  talkativeFox: {
+    id: 'talkativeFox',
+    name: '饒舌な妖狐',
+    team: TEAMS.FOX,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '毎日指定された単語を発言しないと死亡する妖狐。',
+    color: '#ff9100',
+    icon: '🦊',
+    category: '妖狐陣営'
+  },
+
+  whisperApostate: {
+    id: 'whisperApostate',
+    name: 'ささやく背教者',
+    team: TEAMS.FOX,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '妖狐とささやき合うことができる背徳者。',
+    color: '#bf360c',
+    icon: '😈',
+    category: '妖狐陣営'
+  },
+
+  mutantFox: {
+    id: 'mutantFox',
+    name: '変異狐',
+    team: TEAMS.FOX,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: true,
+    description: '占いで人狼と判定される妖狐。',
+    color: '#e64a19',
+    icon: '🦊',
+    category: '妖狐陣営'
+  },
+
+  corruptSorcerer: {
+    id: 'corruptSorcerer',
+    name: '背徳の呪術師',
+    team: TEAMS.FOX,
+    ability: 'sorcery',
+    nightAction: true,
+    appearAsWerewolf: false,
+    description: '妖術師と同じ能力を持つ妖狐陣営。',
+    color: '#4e342e',
+    icon: '🧿',
+    category: '妖狐陣営'
+  },
+
+  // ゾンビ陣営 new roles
+  zombieMania: {
+    id: 'zombieMania',
+    name: 'ゾンビマニア',
+    team: TEAMS.ZOMBIE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: 'ゲーム開始時にゾンビ陣営に加わる。ゾンビの勝利が自分の勝利。',
+    color: '#33691e',
+    icon: '🧟',
+    category: 'ゾンビ陣営'
+  },
+
+  whisperZombieDoc: {
+    id: 'whisperZombieDoc',
+    name: '囁くゾンビ博士',
+    team: TEAMS.ZOMBIE,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: 'ゾンビとささやき合うことができる。',
+    color: '#1b5e20',
+    icon: '🧟',
+    category: 'ゾンビ陣営'
+  },
+
+  assaultZombie: {
+    id: 'assaultZombie',
+    name: '襲撃のゾンビ',
+    team: TEAMS.ZOMBIE,
+    ability: 'zombieAttack',
+    nightAction: true,
+    appearAsWerewolf: false,
+    description: '毎晩一人を襲撃してゾンビに変えることができる。',
+    color: '#2e7d32',
+    icon: '🧟',
+    category: 'ゾンビ陣営'
+  },
+
+  // 恋人陣営 new roles
+  femmeFatale: {
+    id: 'femmeFatale',
+    name: '悪女',
+    team: TEAMS.LOVER,
+    ability: 'seduce',
+    nightAction: true,
+    appearAsWerewolf: false,
+    description: '毎晩一人を誘惑し、恋人にすることができる。',
+    color: '#d50000',
+    icon: '💔',
+    category: '恋人陣営'
+  },
+
+  // 悪魔陣営 - Devil Team
+  devil: {
+    id: 'devil',
+    name: '悪魔',
+    team: TEAMS.DEVIL,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '死亡後に覚醒し、下僕を選ぶことができる。',
+    color: '#6a0080',
+    icon: '😈',
+    category: '悪魔陣営'
+  },
+
+  // その他 - Other Team
+  reindeer: {
+    id: 'reindeer',
+    name: '赤鼻のトナカイ',
+    team: TEAMS.OTHER,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: 'サンタと対になっている。サンタが死亡すると後を追って死亡する。',
+    color: '#d84315',
+    icon: '🦌',
+    category: 'その他'
+  },
+
+  martyr: {
+    id: 'martyr',
+    name: '殉教者',
+    team: TEAMS.OTHER,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '死亡すると勝利する。生き残ると敗北。',
+    color: '#5d4037',
+    icon: '✝',
+    category: 'その他'
+  },
+
+  teruterubozu: {
+    id: 'teruterubozu',
+    name: 'てるてる坊主',
+    team: TEAMS.OTHER,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '処刑されると勝利する。襲撃で死亡すると敗北。',
+    color: '#e0e0e0',
+    icon: '🌤',
+    category: 'その他'
+  },
+
+  pigMan: {
+    id: 'pigMan',
+    name: 'ぶた男',
+    team: TEAMS.OTHER,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '人狼に襲撃されると勝利する。',
+    color: '#f48fb1',
+    icon: '🐷',
+    category: 'その他'
+  },
+
+  batMan: {
+    id: 'batMan',
+    name: 'コウモリ男',
+    team: TEAMS.OTHER,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '最後まで生き残ると勝利する。どの陣営にも属さない。',
+    color: '#424242',
+    icon: '🦇',
+    category: 'その他'
+  },
+
+  avenger: {
+    id: 'avenger',
+    name: '復讐者',
+    team: TEAMS.OTHER,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '特定のプレイヤーを道連れにすると勝利する。',
+    color: '#b71c1c',
+    icon: '💢',
+    category: 'その他'
+  },
+
+  contrarian: {
+    id: 'contrarian',
+    name: '天邪鬼',
+    team: TEAMS.OTHER,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '負けた陣営が勝利条件。通常の勝敗が逆転する。',
+    color: '#ff6f00',
+    icon: '👹',
+    category: 'その他'
+  },
+
+  trueLover: {
+    id: 'trueLover',
+    name: '純愛者',
+    team: TEAMS.OTHER,
+    ability: 'chooseLove',
+    nightAction: true,
+    appearAsWerewolf: false,
+    description: '初夜に一人を選び、その人と運命を共にする。',
+    color: '#e91e63',
+    icon: '💗',
+    category: 'その他'
+  },
+
+  drunkard: {
+    id: 'drunkard',
+    name: '酔っぱらい',
+    team: TEAMS.OTHER,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '自分の役職が分からない。3日目に本当の役職が判明する。',
+    color: '#ff8a65',
+    icon: '🍺',
+    category: 'その他'
+  },
+
+  plagueGod: {
+    id: 'plagueGod',
+    name: '疫病神',
+    team: TEAMS.OTHER,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '隣に座っている人を呪い、不幸にする。',
+    color: '#4a148c',
+    icon: '☠',
+    category: 'その他'
+  },
+
+  telepathist: {
+    id: 'telepathist',
+    name: 'テレパシスト',
+    team: TEAMS.OTHER,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '他のプレイヤーの心を読むことができる。',
+    color: '#00bcd4',
+    icon: '🧠',
+    category: 'その他'
+  },
+
+  jekyllHyde: {
+    id: 'jekyllHyde',
+    name: 'ジキルとハイド',
+    team: TEAMS.OTHER,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '昼は村人、夜は人狼として行動する二重人格。',
+    color: '#9e9e9e',
+    icon: '🎭',
+    category: 'その他'
+  },
+
+  ratGirl: {
+    id: 'ratGirl',
+    name: 'ねずみ娘',
+    team: TEAMS.OTHER,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: '毎晩誰かの家を訪問する。訪問先が襲撃されると一緒に死亡。',
+    color: '#8d6e63',
+    icon: '🐭',
+    category: 'その他'
+  },
+
+  passionateLover: {
+    id: 'passionateLover',
+    name: '激愛女',
+    team: TEAMS.OTHER,
+    ability: 'chooseLove',
+    nightAction: true,
+    appearAsWerewolf: false,
+    description: '初夜に一人を選び、その人を独占する。',
+    color: '#d50000',
+    icon: '❤',
+    category: 'その他'
   }
 };
 
@@ -760,6 +1657,7 @@ const ROLE_CATEGORIES = [
   '妖狐陣営',
   '恋人陣営',
   'ゾンビ陣営',
+  '悪魔陣営',
   'その他'
 ];
 
@@ -868,11 +1766,12 @@ const DEFAULT_PRESETS = {
   13: {
     name: '13人村',
     composition: {
-      villager: 4,
+      villager: 3,
       seer: 1,
       knight: 1,
       medium: 1,
       sage: 1,
+      detective: 1,
       doctor: 1,
       werewolf: 2,
       fox: 1,
@@ -883,12 +1782,13 @@ const DEFAULT_PRESETS = {
   14: {
     name: '14人村',
     composition: {
-      villager: 5,
+      villager: 4,
       seer: 1,
       knight: 1,
       medium: 1,
       sage: 1,
       doctor: 1,
+      paladin: 1,
       werewolf: 2,
       wiseWolf: 1,
       fox: 1,
@@ -899,13 +1799,14 @@ const DEFAULT_PRESETS = {
   15: {
     name: '15人村',
     composition: {
-      villager: 5,
+      villager: 4,
       seer: 1,
       knight: 1,
       medium: 1,
       sage: 1,
       doctor: 1,
       witch: 1,
+      housekeeper: 1,
       werewolf: 2,
       wiseWolf: 1,
       fox: 1,
@@ -916,7 +1817,7 @@ const DEFAULT_PRESETS = {
   16: {
     name: '16人村',
     composition: {
-      villager: 5,
+      villager: 4,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -924,6 +1825,7 @@ const DEFAULT_PRESETS = {
       doctor: 1,
       witch: 1,
       assassin: 1,
+      housekeeper: 1,
       werewolf: 2,
       wiseWolf: 1,
       bigWolf: 1,
@@ -935,7 +1837,7 @@ const DEFAULT_PRESETS = {
   17: {
     name: '17人村',
     composition: {
-      villager: 6,
+      villager: 5,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -943,6 +1845,7 @@ const DEFAULT_PRESETS = {
       doctor: 1,
       witch: 1,
       assassin: 1,
+      paladin: 1,
       werewolf: 2,
       wiseWolf: 1,
       bigWolf: 1,
@@ -955,7 +1858,7 @@ const DEFAULT_PRESETS = {
   18: {
     name: '18人村',
     composition: {
-      villager: 6,
+      villager: 5,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -964,6 +1867,7 @@ const DEFAULT_PRESETS = {
       witch: 1,
       assassin: 1,
       trapper: 1,
+      detective: 1,
       werewolf: 2,
       wiseWolf: 1,
       bigWolf: 1,
@@ -976,7 +1880,7 @@ const DEFAULT_PRESETS = {
   19: {
     name: '19人村',
     composition: {
-      villager: 6,
+      villager: 5,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -986,6 +1890,7 @@ const DEFAULT_PRESETS = {
       assassin: 1,
       trapper: 1,
       mayor: 1,
+      housekeeper: 1,
       werewolf: 2,
       wiseWolf: 1,
       bigWolf: 1,
@@ -998,7 +1903,7 @@ const DEFAULT_PRESETS = {
   20: {
     name: '20人村',
     composition: {
-      villager: 7,
+      villager: 5,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -1008,6 +1913,8 @@ const DEFAULT_PRESETS = {
       assassin: 1,
       trapper: 1,
       mayor: 1,
+      detective: 1,
+      paladin: 1,
       werewolf: 3,
       wiseWolf: 1,
       bigWolf: 1,

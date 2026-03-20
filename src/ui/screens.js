@@ -175,12 +175,22 @@ function getAdvancedPreset(playerCount) {
   const presets = {
     5: { villager: 1, seer: 1, werewolf: 1, madman: 1, fox: 1 },
     6: { villager: 1, seer: 1, knight: 1, werewolf: 1, madman: 1, fox: 1 },
-    7: { villager: 2, seer: 1, knight: 1, werewolf: 1, madman: 1, fox: 1 },
+    7: { villager: 1, seer: 1, knight: 1, medium: 1, werewolf: 1, madman: 1, fox: 1 },
     8: { villager: 1, seer: 1, knight: 1, medium: 1, werewolf: 1, madman: 1, fox: 1, doctor: 1 },
-    9: { villager: 2, seer: 1, knight: 1, medium: 1, werewolf: 1, madman: 1, fox: 1, doctor: 1 },
-    10: { villager: 2, seer: 1, knight: 1, medium: 1, doctor: 1, werewolf: 2, madman: 1, fox: 1 }
+    9: { villager: 1, seer: 1, knight: 1, medium: 1, doctor: 1, werewolf: 2, madman: 1, fox: 1 },
+    10: { villager: 2, seer: 1, knight: 1, medium: 1, doctor: 1, werewolf: 2, madman: 1, fox: 1 },
+    11: { villager: 2, seer: 1, knight: 1, medium: 1, doctor: 1, witch: 1, werewolf: 2, madman: 1, fox: 1 },
+    12: { villager: 2, seer: 1, knight: 1, medium: 1, doctor: 1, witch: 1, werewolf: 2, wiseWolf: 1, fox: 1, madman: 1 },
+    13: { villager: 2, seer: 1, knight: 1, medium: 1, doctor: 1, witch: 1, detective: 1, werewolf: 2, wiseWolf: 1, fox: 1, madman: 1 },
+    14: { villager: 2, seer: 1, knight: 1, medium: 1, doctor: 1, witch: 1, detective: 1, werewolf: 2, wiseWolf: 1, bigWolf: 1, fox: 1, madman: 1 },
+    15: { villager: 2, seer: 1, knight: 1, medium: 1, doctor: 1, witch: 1, detective: 1, nekomata: 1, werewolf: 2, wiseWolf: 1, bigWolf: 1, fox: 1, madman: 1 },
+    16: { villager: 2, seer: 1, knight: 1, medium: 1, doctor: 1, witch: 1, detective: 1, nekomata: 1, paladin: 1, werewolf: 2, wiseWolf: 1, bigWolf: 1, fox: 1, immoralist: 1, madman: 1 },
+    17: { villager: 2, seer: 1, knight: 1, medium: 1, doctor: 1, witch: 1, detective: 1, nekomata: 1, paladin: 1, werewolf: 2, wiseWolf: 1, bigWolf: 1, curseWolf: 1, fox: 1, immoralist: 1, madman: 1 },
+    18: { villager: 2, seer: 1, knight: 1, medium: 1, doctor: 1, witch: 1, detective: 1, nekomata: 1, paladin: 1, assassin: 1, werewolf: 2, wiseWolf: 1, bigWolf: 1, curseWolf: 1, fox: 1, immoralist: 1, madman: 1 },
+    19: { villager: 2, seer: 1, knight: 1, medium: 1, doctor: 1, witch: 1, detective: 1, nekomata: 1, paladin: 1, assassin: 1, werewolf: 2, wiseWolf: 1, bigWolf: 1, curseWolf: 1, wolfKing: 1, fox: 1, immoralist: 1, madman: 1 },
+    20: { villager: 2, seer: 1, knight: 1, medium: 1, doctor: 1, witch: 1, detective: 1, nekomata: 1, paladin: 1, assassin: 1, magicalGirl: 1, werewolf: 2, wiseWolf: 1, bigWolf: 1, curseWolf: 1, wolfKing: 1, fox: 1, immoralist: 1, madman: 1 },
   };
-  return presets[playerCount] || DEFAULT_PRESETS[playerCount].composition;
+  return presets[playerCount] || DEFAULT_PRESETS[playerCount]?.composition || { villager: playerCount - 2, werewolf: 2 };
 }
 
 /**
@@ -371,56 +381,13 @@ function updateCompositionFromConfig() {
  * @returns {Object} Roles grouped by team
  */
 function groupRolesByTeam() {
-  const grouped = {
-    village: [],
-    werewolf: [],
-    fox: [],
-    lover: [],
-    zombie: [],
-    other: []
-  };
-
-  // Map all roles from ROLES object
-  const allRoles = [
-    // Village
-    { id: 'villager', name: '市民', icon: '👤', team: 'village', color: '#8bc34a' },
-    { id: 'seer', name: '占い師', icon: '🔮', team: 'village', color: '#ce93d8' },
-    { id: 'medium', name: '霊能者', icon: '👁', team: 'village', color: '#64b5f6' },
-    { id: 'knight', name: '狩人', icon: '🛡', team: 'village', color: '#ffb74d' },
-    { id: 'baker', name: 'パン屋', icon: '🍞', team: 'village', color: '#d4a040' },
-    { id: 'trapper', name: '罠師', icon: '🪤', team: 'village', color: '#795548' },
-    { id: 'doctor', name: '医者', icon: '💊', team: 'village', color: '#26a69a' },
-    { id: 'witch', name: '魔女', icon: '🧙', team: 'village', color: '#ab47bc' },
-    { id: 'sage', name: '賢者', icon: '📿', team: 'village', color: '#7e57c2' },
-    { id: 'seerApprentice', name: '占い師の弟子', icon: '📖', team: 'village', color: '#ba68c8' },
-    { id: 'priest', name: '聖職者', icon: '⛪', team: 'village', color: '#66bb6a' },
-    { id: 'ghostt', name: '生霊', icon: '👻', team: 'village', color: '#b0bec5' },
-    { id: 'assassin', name: '暗殺者', icon: '🗡', team: 'village', color: '#455a64' },
-    // Werewolf
-    { id: 'werewolf', name: '人狼', icon: '🐺', team: 'werewolf', color: '#ef5350' },
-    { id: 'madman', name: '狂人', icon: '🃏', team: 'werewolf', color: '#ec407a' },
-    { id: 'fanatic', name: '狂信者', icon: '🙏', team: 'werewolf', color: '#e91e63' },
-    { id: 'wiseWolf', name: '賢狼', icon: '🧠', team: 'werewolf', color: '#880e4f' },
-    { id: 'bigWolf', name: '大狼', icon: '🐺', team: 'werewolf', color: '#c62828' },
-    // Fox
-    { id: 'fox', name: '妖狐', icon: '🦊', team: 'fox', color: '#ff6f00' },
-    { id: 'childFox', name: '子狐', icon: '🦊', team: 'fox', color: '#ff8f00' },
-    { id: 'immoralist', name: '背徳者', icon: '😈', team: 'fox', color: '#e65100' },
-    // Lover
-    { id: 'cupid', name: 'キューピッド', icon: '💘', team: 'lover', color: '#f06292' },
-    // Zombie
-    { id: 'zombie', name: 'ゾンビ', icon: '🧟', team: 'zombie', color: '#558b2f' },
-    // Other
-    { id: 'santa', name: 'サンタ', icon: '🎅', team: 'other', color: '#c62828' }
-  ];
-
-  allRoles.forEach(role => {
-    const team = role.team || 'village';
-    if (grouped[team]) {
-      grouped[team].push(role);
-    }
+  const grouped = {};
+  // Dynamically read all roles from the global ROLES object
+  Object.values(ROLES).forEach(role => {
+    const team = role.team || 'other';
+    if (!grouped[team]) grouped[team] = [];
+    grouped[team].push(role);
   });
-
   return grouped;
 }
 
@@ -436,6 +403,7 @@ function getTeamIcon(teamId) {
     fox: '🦊',
     lover: '💕',
     zombie: '🧟',
+    devil: '😈',
     other: '🎪'
   };
   return icons[teamId] || '⚪';
@@ -447,12 +415,17 @@ function getTeamIcon(teamId) {
  * @returns {string} Team name
  */
 function getTeamLabel(teamId) {
+  // Use TEAM_INFO if available, fall back to hardcoded
+  if (typeof TEAM_INFO !== 'undefined' && TEAM_INFO[teamId]) {
+    return TEAM_INFO[teamId].name;
+  }
   const labels = {
     village: '村人陣営',
     werewolf: '人狼陣営',
     fox: '妖狐陣営',
     lover: '恋人陣営',
     zombie: 'ゾンビ陣営',
+    devil: '悪魔陣営',
     other: 'その他'
   };
   return labels[teamId] || 'チーム';
@@ -469,16 +442,10 @@ function getCompositionText(composition) {
   }
 
   const parts = [];
-  const roleMapping = {
-    villager: '市民', seer: '占い師', medium: '霊能者', knight: '狩人',
-    baker: 'パン屋', trapper: '罠師', doctor: '医者', witch: '魔女',
-    werewolf: '人狼', madman: '狂人', fanatic: '狂信者',
-    fox: '妖狐', childFox: '子狐', cupid: 'キューピッド',
-    santa: 'サンタ', wiseWolf: '賢狼', bigWolf: '大狼'
-  };
 
   Object.entries(composition).forEach(([roleId, count]) => {
-    const name = roleMapping[roleId] || roleId;
+    const role = (typeof ROLES !== 'undefined') ? ROLES[roleId] : null;
+    const name = role ? role.name : roleId;
     if (count > 0) {
       if (count === 1) {
         parts.push(name);
