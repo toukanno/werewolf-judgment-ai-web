@@ -72,40 +72,35 @@ const GameUI = {
     if (!messagesArea) return;
 
     const messageEl = document.createElement('div');
-    messageEl.className = `message message-${type}`;
+    const safeContent = this.escapeHtml(content);
 
-    let html = '';
-
-    if (type === 'system') {
-      html = `<div class="system-message">${this.escapeHtml(content)}</div>`;
-    } else if (type === 'ai') {
-      const aiName = (player && player.name) ? player.name : (sender || 'AI');
-      const aiColor = (player && player.avatarColor) ? player.avatarColor : '#ccc';
-      html = `<div class="message-content">
-        <span class="sender ai-sender" style="color:${aiColor}">${this.escapeHtml(aiName)}</span>
-        <div class="text">${this.renderMarkdown(content)}</div>
-      </div>`;
-    } else if (type === 'you') {
-      const youName = (player && player.name) ? player.name : 'あなた';
-      html = `<div class="message-content">
-        <span class="sender you-sender">${this.escapeHtml(youName)}</span>
-        <div class="text">${this.renderMarkdown(content)}</div>
-      </div>`;
-    } else if (type === 'danger') {
-      html = `<div class="danger-message">
-        <span class="danger-icon">⚠️</span>
-        <span>${this.escapeHtml(content)}</span>
-      </div>`;
-    } else if (player) {
-      const role = ROLES[player.role || 'villager'];
-      const roleColor = TEAM_INFO[role?.team || 'other']?.color || '#999';
-      html = `<div class="message-content">
-        <span class="sender" style="background-color: ${roleColor}">${this.escapeHtml(player.name)}</span>
-        <div class="text">${this.renderMarkdown(content)}</div>
-      </div>`;
+    if (type === 'system' || type === 'danger') {
+      messageEl.className = `chat-system ${type === 'danger' ? 'chat-danger' : ''}`;
+      messageEl.innerHTML = safeContent;
+    } else if (type === 'ai' && player) {
+      messageEl.className = 'chat-row chat-left';
+      const color = player.avatarColor || '#ccc';
+      const bg = player.avatarBg || '#333';
+      const initial = player.initial || player.name.charAt(0);
+      messageEl.innerHTML = `
+        <div class="chat-avatar" style="background:linear-gradient(135deg,${bg},${color}30);border-color:${color};color:${color};">${initial}</div>
+        <div class="chat-bubble-wrap">
+          <div class="chat-name" style="color:${color}">${this.escapeHtml(player.name)}</div>
+          <div class="chat-bubble chat-bubble-left">${safeContent}</div>
+        </div>`;
+    } else if (type === 'you' && player) {
+      messageEl.className = 'chat-row chat-right';
+      messageEl.innerHTML = `
+        <div class="chat-bubble-wrap">
+          <div class="chat-name chat-name-right">${this.escapeHtml(player.name)}</div>
+          <div class="chat-bubble chat-bubble-right">${safeContent}</div>
+        </div>
+        <div class="chat-avatar chat-avatar-you">${player.initial || player.name.charAt(0)}</div>`;
+    } else {
+      messageEl.className = 'chat-system';
+      messageEl.innerHTML = safeContent;
     }
 
-    messageEl.innerHTML = html;
     messagesArea.appendChild(messageEl);
     messagesArea.scrollTop = messagesArea.scrollHeight;
   },
@@ -174,7 +169,7 @@ const GameUI = {
       const initial = target.name.charAt(0);
 
       html += `
-        <button class="vote-btn" onclick="(event) => {event.stopPropagation(); GameUI.onVoteBtnClick('${target.id}')}">
+        <button class="vote-btn" data-player-id="${target.id}">
           <div class="vote-avatar" style="background-color: ${teamColor}">
             ${initial}
           </div>
@@ -186,13 +181,13 @@ const GameUI = {
     html += '</div>';
     this.setAction(html);
 
-    // Store the callback so onclick can access it
-    window._currentVoteCallback = onVote;
-  },
-
-  onVoteBtnClick(playerId) {
-    if (window._currentVoteCallback) {
-      window._currentVoteCallback(playerId);
+    // Attach event listeners to vote buttons
+    const voteButtons = document.querySelectorAll('.vote-btn');
+    for (const btn of voteButtons) {
+      btn.addEventListener('click', () => {
+        const playerId = btn.getAttribute('data-player-id');
+        onVote(playerId);
+      });
     }
   },
 
@@ -209,7 +204,7 @@ const GameUI = {
       const teamColor = TEAM_INFO[role?.team || 'other']?.color || '#999';
 
       html += `
-        <button class="target-btn" onclick="GameUI.onNightActionSelect('${target.id}')">
+        <button class="target-btn" data-player-id="${target.id}">
           <div class="target-avatar" style="background-color: ${teamColor}">
             ${target.name.charAt(0)}
           </div>
@@ -221,12 +216,13 @@ const GameUI = {
     html += '</div></div>';
     this.setAction(html);
 
-    window._currentNightActionCallback = onSelect;
-  },
-
-  onNightActionSelect(playerId) {
-    if (window._currentNightActionCallback) {
-      window._currentNightActionCallback(playerId);
+    // Attach event listeners to target buttons
+    const targetButtons = document.querySelectorAll('.target-btn');
+    for (const btn of targetButtons) {
+      btn.addEventListener('click', () => {
+        const playerId = btn.getAttribute('data-player-id');
+        onSelect(playerId);
+      });
     }
   },
 
@@ -249,7 +245,7 @@ const GameUI = {
         const targetRole = ROLES[state.getEffectiveRole(target.id)];
         const color = TEAM_INFO[targetRole?.team || 'other']?.color || '#999';
         html += `
-          <button class="day-action-btn" onclick="GameUI.onDayAction('assassin', '${target.id}')">
+          <button class="day-action-btn" data-action="assassin" data-target-id="${target.id}">
             <span style="background-color: ${color}; padding: 5px 10px; border-radius: 4px; color: white;">
               ${this.escapeHtml(target.name)}に投票
             </span>
@@ -262,7 +258,7 @@ const GameUI = {
         const targetRole = ROLES[state.getEffectiveRole(target.id)];
         const color = TEAM_INFO[targetRole?.team || 'other']?.color || '#999';
         html += `
-          <button class="day-action-btn" onclick="GameUI.onDayAction('dictator', '${target.id}')">
+          <button class="day-action-btn" data-action="dictator" data-target-id="${target.id}">
             <span style="background-color: ${color}; padding: 5px 10px; border-radius: 4px; color: white;">
               ${this.escapeHtml(target.name)}を処刑
             </span>
@@ -273,7 +269,7 @@ const GameUI = {
       html += '<p class="action-description">1人の処刑を免れる権を譲ります</p>';
       for (const target of targets) {
         html += `
-          <button class="day-action-btn" onclick="GameUI.onDayAction('straw_doll', '${target.id}')">
+          <button class="day-action-btn" data-action="straw_doll" data-target-id="${target.id}">
             ${this.escapeHtml(target.name)}に譲る
           </button>
         `;
@@ -283,12 +279,16 @@ const GameUI = {
     html += '</div></div>';
     this.setAction(html);
 
-    window._dayActionCallback = callbacks;
-  },
-
-  onDayAction(actionType, targetId) {
-    if (window._dayActionCallback && window._dayActionCallback[actionType]) {
-      window._dayActionCallback[actionType](targetId);
+    // Attach event listeners to day action buttons
+    const actionButtons = document.querySelectorAll('.day-action-btn');
+    for (const btn of actionButtons) {
+      btn.addEventListener('click', () => {
+        const actionType = btn.getAttribute('data-action');
+        const targetId = btn.getAttribute('data-target-id');
+        if (callbacks && callbacks[actionType]) {
+          callbacks[actionType](targetId);
+        }
+      });
     }
   },
 

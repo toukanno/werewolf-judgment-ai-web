@@ -312,7 +312,7 @@ async function runVotePhase() {
   for (const player of alive) {
     if (player.isHuman) continue;
     const targets = alive.filter(p => p.id !== player.id);
-    const targetId = await gameLogic.getAiVote(player, targets);
+    const targetId = await gameLogic.ai.getVote(player, targets, gameState);
     votes[player.id] = targetId;
   }
 
@@ -467,7 +467,7 @@ async function runNightPhase() {
     }
 
     // Handle death effects (lover chain, etc.)
-    gameLogic.handleDeath(killed);
+    gameState.killPlayer(result.killed);
   } else {
     GameUI.addMessage("昨晩は誰も襲撃されませんでした。", null, "system");
   }
