@@ -21,6 +21,11 @@ const COMPOSITIONS = {
   13: { villager: 5, seer: 1, knight: 1, medium: 1, madman: 1, werewolf: 4 },
   14: { villager: 6, seer: 1, knight: 1, medium: 1, madman: 1, werewolf: 4 },
   15: { villager: 6, seer: 1, knight: 1, medium: 1, madman: 2, werewolf: 4 },
+  16: { villager: 7, seer: 1, knight: 1, medium: 1, madman: 2, werewolf: 4 },
+  17: { villager: 7, seer: 1, knight: 1, medium: 1, madman: 2, werewolf: 5 },
+  18: { villager: 8, seer: 1, knight: 1, medium: 1, madman: 2, werewolf: 5 },
+  19: { villager: 8, seer: 1, knight: 1, medium: 1, madman: 2, werewolf: 6 },
+  20: { villager: 9, seer: 1, knight: 1, medium: 1, madman: 2, werewolf: 6 },
 };
 
 function getCompositionText(count) {

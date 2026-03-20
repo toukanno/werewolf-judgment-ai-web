@@ -14,6 +14,11 @@ const AI_PLAYERS = [
   { id: "ai_12", name: "ユイ",     personality: "穏やかで、味方のフォローが上手い。",     style: "supportive",   avatarColor: "#fff176", avatarBg: "#f57f17", initial: "ユ" },
   { id: "ai_13", name: "カイト",   personality: "強気に攻める前衛タイプ。",               style: "offensive",    avatarColor: "#ff8a65", avatarBg: "#bf360c", initial: "カ" },
   { id: "ai_14", name: "レナ",     personality: "静かだが終盤に鋭い一撃を放つ。",         style: "latebloomer",  avatarColor: "#b39ddb", avatarBg: "#4527a0", initial: "レ" },
+  { id: "ai_15", name: "ショウ",   personality: "盤面整理が得意で要点をまとめる。",       style: "facilitator",  avatarColor: "#80deea", avatarBg: "#00695c", initial: "シ" },
+  { id: "ai_16", name: "エミ",     personality: "相手の心理を読むのが得意。",             style: "careful",      avatarColor: "#f8bbd0", avatarBg: "#ad1457", initial: "エ" },
+  { id: "ai_17", name: "トモヤ",   personality: "中立的に見えて要所で決断する。",         style: "adaptive",     avatarColor: "#c5e1a5", avatarBg: "#558b2f", initial: "ト" },
+  { id: "ai_18", name: "ヒナ",     personality: "直感重視で思い切った投票をする。",       style: "aggressive",   avatarColor: "#ffcc80", avatarBg: "#e65100", initial: "ヒ" },
+  { id: "ai_19", name: "ガク",     personality: "序盤からライン考察を進める。",           style: "logical",      avatarColor: "#b0bec5", avatarBg: "#455a64", initial: "ガ" },
 ];
 
 // アバターSVG生成
