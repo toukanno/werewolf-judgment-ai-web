@@ -37,7 +37,7 @@ const GameUI = {
 
     for (const player of players) {
       const isAlive = alivePlayers.some(p => p.id === player.id);
-      const isMe = player.isAI === false;
+      const isMe = player.isHuman === true;
       const role = ROLES[state.getEffectiveRole(player.id)];
       const roleIcon = role ? role.icon : '❓';
 
@@ -306,11 +306,11 @@ const GameUI = {
           </button>
         `;
       }
-    } else if (role.id === 'straw_doll') {
+    } else if (role.id === 'strawDoll') {
       html += '<p class="action-description">1人の処刑を免れる権を譲ります</p>';
       for (const target of targets) {
         html += `
-          <button class="day-action-btn" data-action="straw_doll" data-target-id="${target.id}">
+          <button class="day-action-btn" data-action="strawDoll" data-target-id="${target.id}">
             ${this.escapeHtml(target.name)}に譲る
           </button>
         `;
@@ -442,9 +442,9 @@ const GameUI = {
     let winnersList = '';
     const winnerPlayers = state.players.filter(p => {
       if (winner === 'fox') {
-        return state.isFoxWinner && p.role === 'fox';
+        return p.role === 'fox' || state.getEffectiveRole(p.id) === 'fox';
       } else if (winner === 'lover') {
-        return state.isLoverWinner && p.role === 'lover';
+        return state.loversIds.includes(p.id);
       } else {
         return ROLES[p.role]?.team === winner;
       }
@@ -472,6 +472,7 @@ const GameUI = {
     `;
 
     screen.innerHTML = resultHtml;
+    showScreen('result');
 
     const restartBtn = document.getElementById('restart-btn');
     if (restartBtn && window._gameRestartCallback) {

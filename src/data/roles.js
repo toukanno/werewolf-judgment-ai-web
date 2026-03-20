@@ -1673,8 +1673,7 @@ const DEFAULT_PRESETS = {
     composition: {
       villager: 2,
       seer: 1,
-      werewolf: 1,
-      madman: 1
+      werewolf: 2
     }
   },
 
@@ -1695,8 +1694,7 @@ const DEFAULT_PRESETS = {
       villager: 3,
       seer: 1,
       knight: 1,
-      werewolf: 1,
-      madman: 1
+      werewolf: 2
     }
   },
 
@@ -1719,8 +1717,7 @@ const DEFAULT_PRESETS = {
       seer: 1,
       knight: 1,
       medium: 1,
-      werewolf: 2,
-      madman: 1
+      werewolf: 3
     }
   },
 
@@ -1903,27 +1900,24 @@ const DEFAULT_PRESETS = {
   20: {
     name: '20人村',
     composition: {
-      villager: 1,
+      villager: 5,
       seer: 1,
       knight: 1,
       medium: 1,
       sage: 1,
       doctor: 1,
-      witch: 1,
-      assassin: 1,
       trapper: 1,
-      mayor: 1,
-      detective: 1,
-      paladin: 1,
-      werewolf: 3,
-      wiseWolf: 1,
-      bigWolf: 1,
+      werewolf: 5,
+      madman: 1,
       fox: 1,
       immoralist: 1,
-      madman: 1
+      nekomata: 1
     }
   }
 };
+
+// Backward-compatible alias used by older tests / callers
+const COMPOSITIONS = DEFAULT_PRESETS;
 
 /**
  * Get composition text for display
@@ -2029,7 +2023,7 @@ function validateComposition(composition) {
 }
 
 // Exported globals:
-// TEAMS, TEAM_INFO, ROLES, ROLE_CATEGORIES, DEFAULT_PRESETS
+// TEAMS, TEAM_INFO, ROLES, ROLE_CATEGORIES, DEFAULT_PRESETS, COMPOSITIONS
 // getTeamLabel, getCompositionText, getRolesByTeam, getRolesByCategory, getTotalRoleCount, validateComposition
 const _rolesExport = {
   TEAMS,
@@ -2037,6 +2031,7 @@ const _rolesExport = {
   ROLES,
   ROLE_CATEGORIES,
   DEFAULT_PRESETS,
+  COMPOSITIONS,
   getTeamLabel,
   getCompositionText,
   getRolesByTeam,
@@ -2044,3 +2039,11 @@ const _rolesExport = {
   getTotalRoleCount,
   validateComposition
 };
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = _rolesExport;
+}
+
+if (typeof globalThis !== 'undefined') {
+  Object.assign(globalThis, _rolesExport);
+}

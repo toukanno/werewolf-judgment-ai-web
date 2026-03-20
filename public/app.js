@@ -252,8 +252,8 @@ async function runDayPhase() {
         const targets = alive.filter(p => p.id !== human.id);
         GameUI.showNightActionButtons(targets, "暗殺", (targetId) => {
           const target = gameState.getPlayerById(targetId);
-          target.isAlive = false;
           gameState.assassinUsed = true;
+          gameState.killPlayer(targetId, 'assassin');
           GameUI.addMessage(`${target.name} が暗殺されました！`, null, "danger");
           GameUI.renderPlayers(gameState);
           resolve();
@@ -328,8 +328,36 @@ async function runVotePhase() {
     }
   }
 
+  // Dictator overrides vote result
+  if (gameState.dictatorTarget) {
+    const dictTarget = gameState.dictatorTarget;
+    gameState.dictatorTarget = null;
+    const dt = gameState.getPlayerById(dictTarget);
+    if (dt && dt.isAlive) {
+      GameUI.addMessage(`👑 独裁者の命令により ${dt.name} が処刑されます！`, null, "danger");
+      gameState.executedToday = dictTarget;
+      const dtRoleName = (ROLES[dt.role] && ROLES[dt.role].name) || dt.role;
+      await GameUI.showDeathEffect(dt);
+      gameLogic.handleExecution(dictTarget);
+      if (gameState.getPlayerById(dictTarget)?.isAlive) gameState.killPlayer(dictTarget);
+      GameUI.renderPlayers(gameState);
+      GameUI.addMessage(`${dt.name} の役職は【${dtRoleName}】でした。`, null, "system");
+      const winnerDt = gameState.checkWinCondition();
+      if (winnerDt) { gameState.clearSave(); await sleep(1000); GameUI.showResult(winnerDt, gameState); return; }
+      gameState.save();
+      GameUI.showContinueButton("🌙 夜へ進む", () => runNightPhase());
+      return;
+    }
+  }
+
   // Tally votes with mayor bonus
   const executedId = gameLogic.tallyVotes(votes);
+  if (!executedId) {
+    GameUI.addMessage("投票が無効でした。夜へ進みます。", null, "system");
+    gameState.save();
+    GameUI.showContinueButton("🌙 夜へ進む", () => runNightPhase());
+    return;
+  }
   const executed = gameState.getPlayerById(executedId);
   const voteCount = voteCounts[executedId] || 0;
   await sleep(500);
@@ -349,7 +377,8 @@ async function runVotePhase() {
   }
   GameUI.renderPlayers(gameState);
 
-  GameUI.addMessage(`${executed.name} の役職は【${ROLES[executed.role].name}】でした。`, null, "system");
+  const executedRoleName = (ROLES[executed.role] && ROLES[executed.role].name) || executed.role;
+  GameUI.addMessage(`${executed.name} の役職は【${executedRoleName}】でした。`, null, "system");
 
   if (executed.isHuman) {
     GameUI.addMessage("あなたは処刑されました…。以降は観戦モードです。", null, "danger");
@@ -449,7 +478,13 @@ async function runNightPhase() {
     const ability = ROLES[player.role].ability;
     const targetId = await gameLogic.getAiNightAction(player);
     if (targetId) {
-      nightActions[ability] = targetId;
+      // Attack supports multiple wolves — collect as array
+      if (ability === "attack") {
+        if (!nightActions.attack) nightActions.attack = targetId;
+        // If multiple wolves choose different targets, keep first (consensus)
+      } else {
+        nightActions[ability] = targetId;
+      }
     }
   }
 

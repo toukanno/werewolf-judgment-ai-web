@@ -32,6 +32,7 @@ class GameState {
     this.shrineUsed = false;
     this.assassinUsed = false;
     this.dictatorUsed = false;
+    this.dictatorTarget = null;
     this.greedyWolfUsed = false;
     this.reviveWolfUsed = false;
     this.seerAlive = true;
@@ -125,14 +126,20 @@ class GameState {
     return this.players.filter(p => p.isAlive && !this.suspendedPlayers.includes(p.id));
   }
 
-  // Alias for compatibility
+  // Aliases for compatibility
   getAlivePlayers() { return this.getAlive(); }
+  getAliveVillagers() { return this.getAliveVillageTeam(); }
 
   getAliveVillageTeam() {
     return this.getAlive().filter(p => {
       const role = ROLES[this.getEffectiveRole(p.id)];
       return role && role.team === "village";
     });
+  }
+
+  // Backward-compatible alias
+  getAliveVillagers() {
+    return this.getAliveVillageTeam();
   }
 
   getAliveWerewolves() {
@@ -346,6 +353,7 @@ class GameState {
         shrineUsed: this.shrineUsed,
         assassinUsed: this.assassinUsed,
         dictatorUsed: this.dictatorUsed,
+        dictatorTarget: this.dictatorTarget,
         greedyWolfUsed: this.greedyWolfUsed,
         reviveWolfUsed: this.reviveWolfUsed,
         seerAlive: this.seerAlive,
@@ -392,6 +400,7 @@ class GameState {
         shrineUsed: data.shrineUsed || false,
         assassinUsed: data.assassinUsed || false,
         dictatorUsed: data.dictatorUsed || false,
+        dictatorTarget: data.dictatorTarget || null,
         greedyWolfUsed: data.greedyWolfUsed || false,
         reviveWolfUsed: data.reviveWolfUsed || false,
         seerAlive: data.seerAlive !== false,

@@ -16,7 +16,6 @@ class GameLogic {
     const counts = {};
 
     for (const [voterId, targetId] of Object.entries(votes)) {
-      const voter = this.state.getPlayerById(voterId);
       const role = ROLES[this.state.getEffectiveRole(voterId)];
 
       // Mayor gets double vote
@@ -24,7 +23,10 @@ class GameLogic {
       counts[targetId] = (counts[targetId] || 0) + voteWeight;
     }
 
-    const maxVotes = Math.max(...Object.values(counts));
+    const values = Object.values(counts);
+    if (values.length === 0) return null;
+
+    const maxVotes = Math.max(...values);
     const candidates = Object.keys(counts).filter(id => counts[id] === maxVotes);
     const executed = candidates[Math.floor(Math.random() * candidates.length)];
 
@@ -214,6 +216,8 @@ class GameLogic {
       this.state.witchPotions.revive = false;
       if (result.killed.includes(targetId)) {
         this.state.revivePlayer(targetId);
+        // Remove revived player from killed list so result reflects final state
+        result.killed = result.killed.filter(id => id !== targetId);
         result.events.push({ type: 'witch_revive', target: targetId });
       }
     }
@@ -225,13 +229,15 @@ class GameLogic {
       result.events.push({ type: 'witch_poison', target: targetId });
     }
 
-    // 13. Flee (fugitive)
+    // 13. Flee (fugitive) — actions.flee is the destination player's ID
     if (actions.flee) {
-      const target = this.state.getPlayerById(actions.flee);
-      if (target && this.state.isWerewolf(actions.flee)) {
-        // Died fleeing to wolf
-        this.state.killPlayer(actions.flee, 'flee');
-        result.events.push({ type: 'flee_death', target: actions.flee });
+      if (this.state.isWerewolf(actions.flee)) {
+        // Fled to a werewolf — fugitive dies
+        const fugitive = this.state.players.find(p => this.state.getEffectiveRole(p.id) === 'fugitive' && p.isAlive);
+        if (fugitive) {
+          this.state.killPlayer(fugitive.id, 'flee');
+          result.events.push({ type: 'flee_death', target: fugitive.id });
+        }
       }
     }
 

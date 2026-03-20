@@ -21,6 +21,10 @@ function assert(condition, msg) {
 async function runTests() {
   console.log("=== GameState テスト ===");
 
+  const countWerewolfTeam = (players) => (
+    players.filter(p => ROLES[p.role] && ROLES[p.role].team === "werewolf").length
+  );
+
   const state = new GameState();
   state.initPlayers("テスト太郎", 5);
   assert(state.players.length === 5, "5人のプレイヤーが作成される");
@@ -30,9 +34,9 @@ async function runTests() {
 
   // 役職配分チェック
   const roles = state.players.map(p => p.role);
-  const wolves = roles.filter(r => r === "werewolf").length;
+  const wolves = countWerewolfTeam(state.players);
   const seers = roles.filter(r => r === "seer").length;
-  assert(wolves === 1, "人狼が1人");
+  assert(wolves === 2, "5人戦: 人狼陣営が2人");
   assert(seers === 1, "占い師が1人");
 
   // killPlayer テスト
@@ -82,7 +86,7 @@ async function runTests() {
     guard: state4.players[1].id,
     attack: state4.players[1].id  // 護衛と同じ対象
   });
-  assert(nightResult.killed.length === 0, "護衛成功で襲撃失敗");
+  assert(Array.isArray(nightResult.killed) && nightResult.killed.length === 0, "護衛成功で襲撃失敗");
   assert(nightResult.divineTarget === state4.players[2].id, "占い対象が正しい");
 
   // 護衛されていない対象への襲撃
@@ -91,7 +95,7 @@ async function runTests() {
     guard: state4.players[1].id,
     attack: state4.players[3].id
   });
-  assert(nightResult2.killed.includes(state4.players[3].id), "護衛されていない対象は襲撃成功");
+  assert(Array.isArray(nightResult2.killed) && nightResult2.killed[0] === state4.players[3].id, "護衛されていない対象は襲撃成功");
 
   console.log("\n=== MockAI テスト ===");
 
@@ -111,13 +115,12 @@ async function runTests() {
   const roles7 = state7.players.map(p => p.role);
   assert(roles7.filter(r => r === "villager").length === 3, "7人戦: 村人3人");
   assert(roles7.filter(r => r === "knight").length === 1, "7人戦: 騎士1人");
-  assert(roles7.filter(r => r === "werewolf").length === 1, "7人戦: 人狼1人");
+  assert(countWerewolfTeam(state7.players) === 2, "7人戦: 人狼陣営2人");
 
   console.log("\n=== 9人戦 役職配分テスト ===");
   const state9 = new GameState();
   state9.initPlayers("九人目", 9);
-  const roles9 = state9.players.map(p => p.role);
-  assert(roles9.filter(r => r === "werewolf").length === 2, "9人戦: 人狼2人");
+  assert(countWerewolfTeam(state9.players) === 3, "9人戦: 人狼陣営3人");
   assert(state9.players.length === 9, "9人戦: 全9人");
 
   console.log("\n=== 20人戦 役職配分テスト ===");
@@ -125,7 +128,7 @@ async function runTests() {
   state20.initPlayers("二十人目", 20);
   const roles20 = state20.players.map(p => p.role);
   assert(state20.players.length === 20, "20人戦: 全20人");
-  assert(roles20.filter(r => r === "werewolf").length === 3, "20人戦: 人狼3人");
+  assert(countWerewolfTeam(state20.players) === 6, "20人戦: 人狼陣営6人");
   assert(roles20.filter(r => r === "seer").length === 1, "20人戦: 占い師1人");
 
   // 結果
