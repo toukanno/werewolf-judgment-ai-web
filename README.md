@@ -1,111 +1,184 @@
-# werewolf-judgment-ai-web
+# 人狼ジャッジメントAI Web
 
-人狼ジャッジメント風の AI 対戦 Web アプリ。ブラウザだけで遊べる人狼ゲームです。
+人狼ジャッジメント風の雰囲気で遊べる、ブラウザ完結型の人狼ゲームです。プレイヤー 1 人と複数の AI が同じ村に入り、昼の議論・投票・夜の能力行使を繰り返して勝敗を決めます。フレームワークやビルド工程は不要で、`public/index.html` をそのまま配信すれば動作します。
 
-## 概要
+**デモ:** https://werewolf-judgment-ai-web.vercel.app
 
-- プレイヤー（あなた）と AI が同じ村で人狼ゲームを行う
-- ユーザーが自分の API キーを入力し、AI プレイヤーの思考に利用する
-- 昼の議論・投票、夜の能力行使を繰り返し、村人陣営 or 人狼陣営の勝利を目指す
-- 人狼ジャッジメントの役職・ルールをベースにしたオリジナル実装（5〜20人村対応）
+## 特徴
 
-## 想定機能
+- **ブラウザだけで動作する静的 Web アプリ**
+  - HTML / CSS / Vanilla JS のみで構成されています。
+  - npm 依存やビルドステップはありません。
+- **5〜20 人村に対応**
+  - 人数に応じた標準編成を用意しています。
+  - ロビーで人数変更・役職プリセット選択・カスタム編成が可能です。
+- **API キーなしでも遊べる**
+  - 未設定時は `MockAI` によるオフライン風の AI が動作します。
+  - API キーを設定すると OpenRouter 経由の AI 発言・行動に切り替えられます。
+- **ゲーム途中からの再開に対応**
+  - ゲーム状態は `localStorage` に保存され、次回アクセス時に復帰できます。
+- **補助ドキュメント付き**
+  - `public/guide.html` に API キー設定ガイドがあります。
+  - `docs/` に設計メモやテスト分析があります。
+- **おまけユーティリティを同梱**
+  - `src/ai/image-prompt-builder.js` に画像生成向けプロンプトビルダーがあります。
 
-### MVP（最小構成）
-- ロビー画面（参加人数・役職構成の選択）
-- API キー入力 UI
-- ゲーム画面（昼フェーズ / 夜フェーズ）
-- AI プレイヤーの発言・投票
-- 投票処理と処刑
-- 夜の能力行使（占い・護衛・襲撃）
+## 現在の実装内容
+
+### ゲームフロー
+
+1. **タイトル画面**
+2. **ロビー画面**
+   - 参加人数（5〜20 人）
+   - 役職プリセット（スタンダード / 上級 / カスタム）
+   - プレイヤー名入力
+   - API キー入力（任意）
+3. **ゲーム画面**
+   - 昼フェーズの議論
+   - 投票と処刑
+   - 夜フェーズの能力行使
+4. **結果画面**
+   - 勝利陣営表示
+   - 生存 / 死亡状態の確認
+
+### 実装済みの主な要素
+
+- AI プレイヤーの発言生成
+- AI / プレイヤーの投票処理
+- 夜の占い・護衛・襲撃などの処理
 - 勝敗判定
-- 結果画面
-
-### 将来拡張
-- 追加役職（狂人、霊能者、狐 など）
-- 複数 AI モデル対応
-- 戦績記録
-- リプレイ機能
+- 役職に応じた一部特殊処理
+- ログ表示と途中再開
+- 簡易 Markdown 表示
 
 ## 技術スタック
 
-| レイヤー | 技術 |
-|---|---|
-| フロントエンド | HTML / CSS / Vanilla JS（ビルド不要） |
-| AI API | OpenRouter（ユーザーが API キーを入力） |
-| デプロイ | 静的ホスティング（GitHub Pages / Vercel） |
-| データ | JSON（役職・ルール定義） |
+| レイヤー | 内容 |
+| --- | --- |
+| フロントエンド | HTML / CSS / Vanilla JS |
+| AI API | OpenRouter（ユーザー入力の API キーを利用） |
+| フォールバック AI | MockAI |
+| 永続化 | localStorage |
+| デプロイ | Vercel などの静的ホスティング |
 
-## 画面構成（案）
+## ディレクトリ構成
 
+```text
+public/
+  index.html      # アプリ本体
+  style.css       # UI スタイル
+  app.js          # ゲーム進行制御
+  guide.html      # API キー設定ガイド
+src/
+  ai/
+    mock.js
+    openrouter.js
+    image-prompt-builder.js
+  data/
+    players.js
+    players.json
+    roles.js
+    roles.json
+  game/
+    logic.js
+    state.js
+  ui/
+    game-ui.js
+    screens.js
+test/
+  game-test.js
+  image-prompt-builder-test.js
+docs/
+  plan.md
+  test-coverage-analysis.md
 ```
-[トップ画面]  →  [ロビー画面]  →  [ゲーム画面]  →  [結果画面]
-                  ├ 人数選択          ├ 昼フェーズ
-                  ├ 役職構成          │  ├ 議論
-                  └ APIキー入力       │  └ 投票
-                                     └ 夜フェーズ
-                                        ├ 占い
-                                        ├ 護衛
-                                        └ 襲撃
-```
 
-## 実装ステップ
+## ローカルでの起動方法
 
-1. リポジトリ初期化・設計ドキュメント整備
-2. 役職・ルールのデータ定義
-3. 基本 UI（トップ・ロビー・ゲーム・結果画面）
-4. ゲーム進行ロジック（フェーズ管理・投票・勝敗判定）
-5. AI 応答処理（OpenRouter API 連携）
-6. 統合テスト・バランス調整
+ビルドは不要です。以下のどちらかで確認できます。
 
-## デモ
-
-https://werewolf-judgment-ai-web.vercel.app
-
-## 起動方法
+### 1. 直接ブラウザで開く
 
 ```bash
-# 方法1: ブラウザで直接開く
 open public/index.html
-
-# 方法2: HTTPサーバー経由（推奨）
-python3 -m http.server 8080
-# → http://localhost:8080/public/index.html にアクセス
 ```
 
-
-## 画像生成プロンプトビルダー
-
-`src/ai/image-prompt-builder.js` に、短い要望から画像生成モデル向けの完成プロンプトを生成するユーティリティを追加しています。
+### 2. ローカル HTTP サーバーで開く（推奨）
 
 ```bash
-node -e "const b=require('./src/ai/image-prompt-builder'); console.log(b.build('可愛い雰囲気の女性キャラ'))"
+python3 -m http.server 8080
 ```
 
-出力は以下の固定形式です。
-- Main Prompt (EN)
-- Negative Prompt (EN)
-- Intent Summary (JP)
-- Variations (3種)
+その後、次の URL にアクセスしてください。
 
-## Markdown表示
+```text
+http://localhost:8080/public/index.html
+```
 
-ゲーム中のメッセージ欄は簡易 Markdown 表示に対応しています。AI の発言やシステムメッセージで次の記法を使えます。
+## AI 利用について
+
+### API キーなし
+
+- そのままゲームを開始できます。
+- 組み込みの `MockAI` が発言・投票・夜行動を担当します。
+
+### API キーあり
+
+- ロビー画面の API キー欄に入力します。
+- 接続テストボタンで簡易確認ができます。
+- 現在の OpenRouter モデル既定値は `anthropic/claude-sonnet-4` です。
+- API エラー時は自動で `MockAI` にフォールバックします。
+
+詳しい手順は `public/guide.html` を参照してください。
+
+## Markdown 表示
+
+ゲーム中のメッセージ欄は簡易 Markdown 表示に対応しています。使用できる主な記法は次の通りです。
 
 - 見出し: `#` / `##` / `###`
 - 強調: `**太字**` / `*斜体*`
 - コード: `` `code` ``
 - リスト: `- item`
 - 引用: `> quote`
-- リンク: `[OpenRouter](https://openrouter.ai/)`
+- リンク: `[label](https://example.com)`
 
 ## テスト
 
+Node.js があれば、次のコマンドで基本チェックを実行できます。
+
 ```bash
 node test/game-test.js
+node test/image-prompt-builder-test.js
 ```
 
-ゲームロジック（状態管理・勝敗判定・投票・夜処理・MockAI）の22項目を自動検証します。
+### テスト内容
+
+- プレイヤー初期化
+- 役職配分
+- 勝敗判定
+- 投票集計
+- 夜処理
+- MockAI の応答
+- 画像プロンプトビルダー出力
+
+## 画像生成プロンプトビルダー
+
+`src/ai/image-prompt-builder.js` には、短い日本語要望から画像生成向けの整形済みプロンプトを出力する補助機能があります。
+
+```bash
+node -e "const b=require('./src/ai/image-prompt-builder'); console.log(b.build('可愛い雰囲気の女性キャラ'))"
+```
+
+出力形式は以下の固定構成です。
+
+- Main Prompt (EN)
+- Negative Prompt (EN)
+- Intent Summary (JP)
+- Variations（3種）
+
+## デプロイ
+
+このリポジトリは静的アプリとして配信できます。Vercel 用の設定は `vercel.json` に含まれています。
 
 ## ライセンス
 
