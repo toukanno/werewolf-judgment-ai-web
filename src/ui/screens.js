@@ -138,6 +138,7 @@ function initRoleConfig(playerCount) {
  * @param {number} playerCount - Number of players
  */
 function selectPreset(preset, playerCount) {
+  playerCount = playerCount || _screenState.selectedPlayerCount;
   _screenState.selectedPreset = preset;
 
   // Update button states

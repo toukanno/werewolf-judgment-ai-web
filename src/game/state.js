@@ -278,12 +278,26 @@ class GameState {
   }
 
   checkWinCondition() {
+    const alive = this.getAlive();
     const wolves = this.getAliveWerewolves().length;
-    const zombies = this.getAlive().filter(p => this.getEffectiveRole(p.id) === 'zombie').length;
-    const villagers = this.getAlive().filter(p => {
+    const zombies = alive.filter(p => this.getEffectiveRole(p.id) === 'zombie').length;
+    const villagers = alive.filter(p => {
       const role = ROLES[this.getEffectiveRole(p.id)];
       return role && role.team === "village";
     }).length;
+    const foxAlive = this.foxAlive && alive.some(p => this.getEffectiveRole(p.id) === 'fox');
+
+    // Lover win: only the two lovers remain (checked first — highest priority)
+    if (this.loversIds.length === 2) {
+      const l1 = this.getPlayerById(this.loversIds[0]);
+      const l2 = this.getPlayerById(this.loversIds[1]);
+      if (l1 && l2 && l1.isAlive && l2.isAlive &&
+          alive.length === 2 && alive.every(p => this.loversIds.includes(p.id))) {
+        this.isGameOver = true;
+        this.winner = "lover";
+        return "lover";
+      }
+    }
 
     // Zombie win condition
     if (zombies > 0 && zombies >= (villagers + wolves)) {
@@ -292,31 +306,27 @@ class GameState {
       return "zombie";
     }
 
-    // Werewolf win condition
+    // Werewolf win condition — fox overrides if alive
     if (wolves > 0 && wolves >= villagers) {
+      if (foxAlive) {
+        this.isGameOver = true;
+        this.winner = "fox";
+        return "fox";
+      }
       this.isGameOver = true;
       this.winner = "werewolf";
       return "werewolf";
     }
 
-    // Village win condition
+    // Village win condition — fox overrides if alive
     if (wolves === 0 && zombies === 0) {
+      if (foxAlive) {
+        this.isGameOver = true;
+        this.winner = "fox";
+        return "fox";
+      }
       this.isGameOver = true;
       this.winner = "village";
-
-      // Check additional winners
-      if (this.foxAlive && this.getAlive().some(p => this.getEffectiveRole(p.id) === 'fox')) {
-        // Fox also wins
-      }
-
-      if (this.loversIds.length === 2) {
-        const l1 = this.getPlayerById(this.loversIds[0]);
-        const l2 = this.getPlayerById(this.loversIds[1]);
-        if (l1 && l2 && l1.isAlive && l2.isAlive) {
-          // Lovers also win
-        }
-      }
-
       return "village";
     }
 

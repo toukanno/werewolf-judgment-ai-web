@@ -131,6 +131,76 @@ async function runTests() {
   assert(countWerewolfTeam(state20.players) === 6, "20人戦: 人狼陣営6人");
   assert(roles20.filter(r => r === "seer").length === 1, "20人戦: 占い師1人");
 
+  console.log("\n=== 勝利判定 拡張テスト ===");
+
+  // Fox win: village wins but fox alive → fox takes it
+  const stateFox = new GameState();
+  stateFox.players = [
+    { id: "h", name: "H", role: "villager", isAlive: true, isHuman: true },
+    { id: "f", name: "F", role: "fox",      isAlive: true, isHuman: false },
+    { id: "w", name: "W", role: "werewolf", isAlive: false, isHuman: false },
+  ];
+  stateFox.foxAlive = true;
+  assert(stateFox.checkWinCondition() === "fox", "人狼全滅・妖狐生存 → 妖狐勝利");
+
+  // Fox win when wolf >= village
+  const stateFox2 = new GameState();
+  stateFox2.players = [
+    { id: "h", name: "H", role: "villager", isAlive: true, isHuman: true },
+    { id: "f", name: "F", role: "fox",      isAlive: true, isHuman: false },
+    { id: "w", name: "W", role: "werewolf", isAlive: true, isHuman: false },
+  ];
+  stateFox2.foxAlive = true;
+  assert(stateFox2.checkWinCondition() === "fox", "人狼>=村人・妖狐生存 → 妖狐勝利");
+
+  // No fox → normal werewolf win
+  const stateWolf2 = new GameState();
+  stateWolf2.players = [
+    { id: "h", name: "H", role: "villager", isAlive: true, isHuman: true },
+    { id: "w", name: "W", role: "werewolf", isAlive: true, isHuman: false },
+  ];
+  stateWolf2.foxAlive = false;
+  assert(stateWolf2.checkWinCondition() === "werewolf", "妖狐なし・人狼>=村人 → 人狼勝利");
+
+  // Lover win: only two lovers alive
+  const stateLover = new GameState();
+  stateLover.players = [
+    { id: "l1", name: "L1", role: "villager", isAlive: true,  isHuman: true },
+    { id: "l2", name: "L2", role: "villager", isAlive: true,  isHuman: false },
+    { id: "w",  name: "W",  role: "werewolf", isAlive: false, isHuman: false },
+    { id: "v",  name: "V",  role: "villager", isAlive: false, isHuman: false },
+  ];
+  stateLover.loversIds = ["l1", "l2"];
+  assert(stateLover.checkWinCondition() === "lover", "恋人2人のみ生存 → 恋人勝利");
+
+  console.log("\n=== ゲームフロー統合テスト ===");
+
+  const stateFlow = new GameState();
+  stateFlow.initPlayers("統合テスト", 7);
+  const logicFlow = new GameLogic(stateFlow, new MockAI());
+
+  // Vote: everyone votes for player[1]
+  const flowAlive = stateFlow.getAlive();
+  const flowVoteTarget = flowAlive[1].id;
+  const flowVotes = {};
+  flowAlive.forEach(p => { flowVotes[p.id] = flowVoteTarget; });
+  const executed = logicFlow.tallyVotes(flowVotes);
+  assert(executed === flowVoteTarget, "フロー: 投票集計が正しい");
+
+  stateFlow.executedToday = executed;
+  logicFlow.handleExecution(executed);
+  assert(!stateFlow.getPlayerById(executed)?.isAlive, "フロー: 処刑後に死亡");
+
+  // Night: attack a non-wolf
+  const nonWolf = stateFlow.getAlive().find(p => !stateFlow.isWerewolf(p.id));
+  if (nonWolf) {
+    const nightRes = logicFlow.resolveNight({ attack: nonWolf.id });
+    assert(Array.isArray(nightRes.killed), "フロー: 夜アクション結果が配列");
+  }
+
+  const winResult = stateFlow.checkWinCondition();
+  assert(winResult === null || typeof winResult === "string", "フロー: 勝敗判定が実行できる");
+
   // 結果
   console.log(`\n=== 結果: ${passed} passed, ${failed} failed ===`);
   process.exit(failed > 0 ? 1 : 0);
