@@ -154,7 +154,6 @@ const GameUI = {
           <span style="font-size:11px;color:var(--text2);">議論時間</span>
           <span id="discussion-timer" style="font-size:13px;font-weight:700;color:var(--success);font-variant-numeric:tabular-nums;">120秒</span>
         </div>
-        ${playerChipsHtml}
         <div class="chat-input-container">
           <button id="co-btn" class="btn co-btn">CO</button>
           <input type="text" id="chat-input" class="chat-input" placeholder="発言を入力...">
@@ -177,6 +176,7 @@ const GameUI = {
         <button id="proceed-btn" class="btn btn-ghost" style="width:100%;padding:10px;font-size:14px;font-weight:700;border-color:var(--gold);color:var(--gold);">
           ${this.escapeHtml(proceedLabel)}
         </button>
+        ${playerChipsHtml}
       </div>
     `;
 
