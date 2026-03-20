@@ -50,48 +50,7 @@ function selectPlayerCount(count) {
   }
 }
 
-/**
- * Test API key connection
- */
-async function testApiKey() {
-  const key = document.getElementById("api-key").value.trim();
-  const status = document.getElementById("api-key-status");
-
-  if (!key) {
-    status.textContent = "APIキーを入力してください";
-    status.className = "api-status error";
-    return;
-  }
-
-  status.textContent = "接続テスト中...";
-  status.className = "api-status";
-
-  try {
-    const ok = await OpenRouterAI.testConnection(key);
-    if (ok) {
-      status.textContent = "✓ 接続成功";
-      status.className = "api-status ok";
-      localStorage.setItem("werewolf_api_key", key);
-      _screenState.apiKey = key;
-    } else {
-      status.textContent = "✗ 接続失敗";
-      status.className = "api-status error";
-    }
-  } catch (e) {
-    status.textContent = "✗ エラーが発生しました";
-    status.className = "api-status error";
-  }
-}
-
-/**
- * Clear stored API key
- */
-function clearApiKey() {
-  document.getElementById("api-key").value = "";
-  localStorage.removeItem("werewolf_api_key");
-  document.getElementById("api-key-status").textContent = "";
-  _screenState.apiKey = '';
-}
+// testApiKey / clearApiKey / onProviderChange are defined in app.js
 
 /**
  * Initialize role configuration UI for lobby
@@ -462,8 +421,6 @@ function getCompositionText(composition) {
 // Global exports
 window.showScreen = showScreen;
 window.selectPlayerCount = selectPlayerCount;
-window.testApiKey = testApiKey;
-window.clearApiKey = clearApiKey;
 window.initRoleConfig = initRoleConfig;
 window.selectPreset = selectPreset;
 window.renderRoleSelector = renderRoleSelector;

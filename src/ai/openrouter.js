@@ -1,64 +1,93 @@
 /**
- * OpenRouter API Integration
- * Handles API communication for AI player statements and decisions
+ * Multi-provider AI Integration
+ * Supports Groq, OpenRouter, OpenAI via unified interface
  */
 
+const AI_PROVIDER_CONFIGS = {
+  groq: {
+    url: "https://api.groq.com/openai/v1/chat/completions",
+    model: "llama-3.1-70b-versatile",
+    testUrl: "https://api.groq.com/openai/v1/models",
+    headers: (key) => ({
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${key}`
+    })
+  },
+  openrouter: {
+    url: "https://openrouter.ai/api/v1/chat/completions",
+    model: "meta-llama/llama-3.1-70b-instruct",
+    testUrl: "https://openrouter.ai/api/v1/models",
+    headers: (key) => ({
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${key}`,
+      "HTTP-Referer": (typeof location !== "undefined" ? location.origin : ""),
+      "X-Title": "Werewolf Judgment AI"
+    })
+  },
+  openai: {
+    url: "https://api.openai.com/v1/chat/completions",
+    model: "gpt-3.5-turbo",
+    testUrl: "https://api.openai.com/v1/models",
+    headers: (key) => ({
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${key}`
+    })
+  }
+};
+
 class OpenRouterAI {
-  constructor(apiKey) {
+  constructor(apiKey, apiType = "openrouter") {
     this.apiKey = apiKey;
-    this.model = "anthropic/claude-sonnet-4";
-    this.baseUrl = "https://openrouter.ai/api/v1/chat/completions";
+    this.apiType = apiType;
+    const cfg = AI_PROVIDER_CONFIGS[apiType] || AI_PROVIDER_CONFIGS.openrouter;
+    this.model = cfg.model;
+    this.baseUrl = cfg.url;
+    this._getHeaders = cfg.headers;
   }
 
   /**
-   * Test API key connection
+   * Test API key connection for given provider
    */
-  static async testConnection(apiKey) {
+  static async testConnection(apiKey, apiType = "openrouter") {
     try {
-      const res = await fetch("https://openrouter.ai/api/v1/models", {
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "HTTP-Referer": location.origin,
-          "X-Title": "Werewolf Judgment AI"
-        }
+      const cfg = AI_PROVIDER_CONFIGS[apiType] || AI_PROVIDER_CONFIGS.openrouter;
+      const res = await fetch(cfg.testUrl, {
+        headers: cfg.headers(apiKey)
       });
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        console.error(`[AI] testConnection failed (${res.status}):`, body);
+      }
       return res.ok;
-    } catch {
+    } catch (err) {
+      console.error("[AI] testConnection error:", err);
       return false;
     }
   }
 
   /**
-   * Internal API request
+   * Internal API request — throws on error (no silent fallback here)
    */
   async _request(messages) {
-    try {
-      const res = await fetch(this.baseUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${this.apiKey}`,
-          "HTTP-Referer": location.origin,
-          "X-Title": "Werewolf Judgment AI"
-        },
-        body: JSON.stringify({
-          model: this.model,
-          messages,
-          temperature: 0.8,
-          max_tokens: 300
-        })
-      });
+    const headers = this._getHeaders(this.apiKey);
+    const body = JSON.stringify({ model: this.model, messages, temperature: 0.8, max_tokens: 300 });
+    console.log(`[AI:${this.apiType}] request →`, this.model);
 
-      if (!res.ok) {
-        throw new Error(`API error: ${res.status}`);
-      }
-
-      const data = await res.json();
-      return data.choices[0].message.content;
-    } catch (error) {
-      console.error("OpenRouter API error:", error);
-      throw error;
+    const res = await fetch(this.baseUrl, { method: "POST", headers, body });
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => "");
+      const msg = `[AI:${this.apiType}] HTTP ${res.status}: ${errBody}`;
+      console.error(msg);
+      throw new Error(msg);
     }
+    const data = await res.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) {
+      const msg = `[AI:${this.apiType}] Empty response: ${JSON.stringify(data)}`;
+      console.error(msg);
+      throw new Error(msg);
+    }
+    return content;
   }
 
   /**

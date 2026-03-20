@@ -21,19 +21,65 @@ function addMsg(text, type = "system", player = null) {
 
 window.addEventListener("DOMContentLoaded", () => {
   selectPlayerCount(5);
-  const savedKey = localStorage.getItem("werewolf_api_key");
-  if (savedKey) document.getElementById("api-key").value = savedKey;
+  const savedProvider = localStorage.getItem("werewolf_api_type") || "none";
+  const savedKey = localStorage.getItem("werewolf_api_key") || "";
+  const providerEl = document.getElementById("api-provider");
+  if (providerEl) providerEl.value = savedProvider;
+  const keyEl = document.getElementById("api-key");
+  if (keyEl && savedKey) keyEl.value = savedKey;
+  onProviderChange();
   if (GameState.hasSavedGame()) {
     document.getElementById("resume-banner").style.display = "flex";
   }
 });
+
+function onProviderChange() {
+  const provider = document.getElementById("api-provider")?.value || "none";
+  const section = document.getElementById("api-key-section");
+  if (section) section.style.display = provider === "none" ? "none" : "block";
+}
+
+async function testApiKey() {
+  const provider = document.getElementById("api-provider")?.value || "none";
+  const apiKey = document.getElementById("api-key")?.value.trim() || "";
+  const statusEl = document.getElementById("api-key-status");
+  if (!statusEl) return;
+  if (provider === "none" || !apiKey) {
+    statusEl.textContent = "プロバイダとAPIキーを選択してください";
+    statusEl.className = "api-status error";
+    return;
+  }
+  statusEl.textContent = "接続確認中…";
+  statusEl.className = "api-status";
+  const ok = await OpenRouterAI.testConnection(apiKey, provider);
+  if (ok) {
+    statusEl.textContent = "✓ 接続成功";
+    statusEl.className = "api-status ok";
+  } else {
+    statusEl.textContent = "✗ 接続失敗（キーまたはプロバイダを確認してください）";
+    statusEl.className = "api-status error";
+  }
+}
+
+function clearApiKey() {
+  const keyEl = document.getElementById("api-key");
+  if (keyEl) keyEl.value = "";
+  localStorage.removeItem("werewolf_api_key");
+  localStorage.removeItem("werewolf_api_type");
+  const providerEl = document.getElementById("api-provider");
+  if (providerEl) providerEl.value = "none";
+  onProviderChange();
+  const statusEl = document.getElementById("api-key-status");
+  if (statusEl) { statusEl.textContent = "クリアしました"; statusEl.className = "api-status"; }
+}
 
 // ─── Resume ───────────────────────────────────────────────────────────────────
 
 async function resumeGame() {
   document.getElementById("resume-banner").style.display = "none";
   const apiKey = localStorage.getItem("werewolf_api_key") || "";
-  const ai = apiKey ? new OpenRouterAI(apiKey) : new MockAI();
+  const apiType = localStorage.getItem("werewolf_api_type") || "none";
+  const ai = (apiKey && apiType !== "none") ? new OpenRouterAI(apiKey, apiType) : new MockAI();
 
   gameState.reset();
   if (!gameState.load()) { showScreen("lobby"); return; }
@@ -70,10 +116,13 @@ function dismissResume() {
 async function startGame() {
   const playerName = document.getElementById("player-name").value.trim() || "プレイヤー";
   const count = window._selectedPlayerCount;
-  const apiKey = document.getElementById("api-key").value.trim();
+  const apiKey = document.getElementById("api-key")?.value.trim() || "";
+  const apiType = document.getElementById("api-provider")?.value || "none";
   if (apiKey) localStorage.setItem("werewolf_api_key", apiKey);
+  localStorage.setItem("werewolf_api_type", apiType);
 
-  const ai = apiKey ? new OpenRouterAI(apiKey) : new MockAI();
+  const ai = (apiKey && apiType !== "none") ? new OpenRouterAI(apiKey, apiType) : new MockAI();
+  console.log(`[AI] Using ${apiKey && apiType !== "none" ? apiType : "MockAI"}`);
 
   // Validate custom composition
   const composition = (typeof getCustomComposition === 'function') ? getCustomComposition() : null;
@@ -144,6 +193,7 @@ function notifyAllies(human) {
 
 async function runDayPhase() {
   gameState.phase = "day";
+  document.getElementById("screen-game")?.classList.remove("phase-night");
   GameUI.updateHeader(gameState);
   const human = gameState.getHuman();
 
@@ -172,11 +222,13 @@ async function runDayPhase() {
     gameState.suspendedPlayers = [];
   }
 
-  // AI statements — 3-5 second intervals
+  // AI statements — 1-2 second intervals
   const alive = gameState.getAlive();
+  let firstAi = true;
   for (const player of alive) {
     if (player.isHuman) continue;
-    await sleep(3000 + Math.random() * 2000);
+    await sleep(firstAi ? (800 + Math.random() * 400) : (1000 + Math.random() * 1000));
+    firstAi = false;
     const stmt = await gameLogic.getAiStatement(player);
     addMsg(stmt, "ai", player);
     gameState.addLog("statement", stmt, player.name);
@@ -348,6 +400,7 @@ async function runVotePhase() {
 
 async function runNightPhase() {
   gameState.phase = "night";
+  document.getElementById("screen-game")?.classList.add("phase-night");
   GameUI.updateHeader(gameState);
   addMsg(`🌙 ${gameState.day}日目の夜 — 静かに能力を行使してください…`);
 

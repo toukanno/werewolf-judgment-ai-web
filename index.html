@@ -132,13 +132,22 @@
 
       <div class="lobby-section">
         <h3>🔑 AI設定（オプション）</h3>
-        <p class="hint">APIキーを設定しなくても遊べます（プログラムAIが動作します）。<br>より高度なAI発言が欲しい場合は <a href="public/guide.html" class="guide-link">AI設定ガイド</a> を参照してください。</p>
-        <input type="password" id="api-key" class="input" placeholder="APIキーを入力（任意）">
-        <div class="api-key-actions">
-          <button class="btn btn-sm" onclick="testApiKey()">テスト</button>
-          <button class="btn btn-sm" onclick="clearApiKey()">クリア</button>
+        <p class="hint">APIキーを設定しなくても遊べます（パターンAIが動作します）。より自然なAI発言には <a href="public/guide.html" class="guide-link">AI設定ガイド</a> を参照してください。</p>
+        <label class="section-label" style="margin-top:6px;">AIプロバイダ</label>
+        <select id="api-provider" class="input" onchange="onProviderChange()">
+          <option value="none">なし（パターンAI）</option>
+          <option value="groq">Groq（無料・高速）</option>
+          <option value="openrouter">OpenRouter</option>
+          <option value="openai">OpenAI</option>
+        </select>
+        <div id="api-key-section" style="display:none;margin-top:8px;">
+          <input type="password" id="api-key" class="input" placeholder="APIキーを入力">
+          <div class="api-key-actions">
+            <button class="btn btn-sm" onclick="testApiKey()">テスト接続</button>
+            <button class="btn btn-sm" onclick="clearApiKey()">クリア</button>
+          </div>
+          <div id="api-key-status" class="api-status"></div>
         </div>
-        <div id="api-key-status" class="api-status"></div>
       </div>
 
       <div class="lobby-actions">
