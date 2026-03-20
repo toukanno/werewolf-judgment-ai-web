@@ -183,3 +183,7 @@ node -e "const b=require('./src/ai/image-prompt-builder'); console.log(b.build('
 ## ライセンス
 
 MIT
+
+## License
+
+MIT
