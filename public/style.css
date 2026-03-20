@@ -124,6 +124,17 @@ body { height: 100%; min-height: -webkit-fill-available; overflow: hidden; font-
 .chat-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
 .chat-input-container .btn-primary { border-radius: 20px; padding: 10px 20px; }
 
+/* CO Button & Popup */
+.co-btn { border-radius: 20px; padding: 8px 14px; font-size: 12px; font-weight: 800; color: var(--gold-light); border-color: var(--gold); background: rgba(212,160,64,0.1); white-space: nowrap; }
+.co-btn:hover { background: rgba(212,160,64,0.2); box-shadow: 0 0 10px rgba(212,160,64,0.3); }
+.co-popup { position: absolute; bottom: 100%; left: 0; right: 0; background: var(--surface2); border: 1px solid var(--border-light); border-radius: 12px 12px 0 0; padding: 12px; z-index: 50; animation: msgIn 0.2s ease; }
+.co-popup-title { font-size: 12px; color: var(--gold); font-weight: 700; margin-bottom: 8px; text-align: center; }
+.co-popup-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
+.co-role-btn { padding: 8px 4px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 11px; cursor: pointer; transition: all 0.15s; font-family: var(--sans); text-align: center; }
+.co-role-btn:hover { border-color: var(--accent); background: var(--surface3); }
+.co-cancel { display: block; margin: 0 auto; font-size: 11px; }
+.action-area { position: relative; }
+
 .continue-container { text-align: center; }
 .continue-container .btn { width: 100%; padding: 14px; font-size: 16px; }
 

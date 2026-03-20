@@ -205,13 +205,18 @@ class MockAI {
       const styleIntros = this.intros[player.style] || this.intros.cautious;
       text = this._pick(styleIntros);
     } else if (role === "seer" || role === "sage" || role === "fakeSeer") {
-      const pool = state.day === 2 ? this.seerStatements.co : this.seerStatements.general;
-      text = this._pick(pool);
+      if (state.day === 2) {
+        // CO on day 2
+        text = `【占い師CO】${this._pick(this.seerStatements.co)}`;
+      } else {
+        text = this._pick(this.seerStatements.general);
+      }
       const divineResult = Math.random() > 0.6 ? "人狼" : "村人";
       text = text.replace("{result}", divineResult);
     } else if (role === "medium") {
       if (state.mediumResults && state.mediumResults.length > 0) {
-        text = this._pick(this.mediumStatements);
+        const prefix = state.day === 2 ? "【霊能者CO】" : "";
+        text = prefix + this._pick(this.mediumStatements);
         const lastResult = state.mediumResults[state.mediumResults.length - 1];
         text = text.replace("{result}", lastResult.result === "werewolf" ? "人狼" : "村人");
       } else {
@@ -222,7 +227,11 @@ class MockAI {
     } else if (role === "baker") {
       text = state.day === 2 ? this._pick(this.bakerStatements) : this._pick(this.villageStatements);
     } else if (role === "madman" || role === "fanatic" || role === "whisperMad" || role === "sorcerer" || role === "wolfBoy") {
-      text = this._pick(this.madmanStatements);
+      if (state.day === 2 && Math.random() > 0.4) {
+        text = "【占い師CO】" + this._pick(this.madmanStatements);
+      } else {
+        text = this._pick(this.madmanStatements);
+      }
     } else if (role === "fox" || role === "childFox" || role === "immoralist") {
       text = this._pick(this.foxStatements);
     } else if (team === "werewolf") {

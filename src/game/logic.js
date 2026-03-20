@@ -138,8 +138,13 @@ class GameLogic {
     }
 
     // 5. Resolve attack with all interactions
-    if (actions.attack && actions.attack.length > 0) {
-      const attackResult = this.resolveAttack(actions.attack, result);
+    // Normalize attack to array (may be string from a single wolf)
+    let attackTargets = actions.attack;
+    if (attackTargets && !Array.isArray(attackTargets)) {
+      attackTargets = [attackTargets];
+    }
+    if (attackTargets && attackTargets.length > 0) {
+      const attackResult = this.resolveAttack(attackTargets, result);
       result.killed.push(...attackResult.killed);
       result.events.push(...attackResult.events);
     }

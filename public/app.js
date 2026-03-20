@@ -341,9 +341,12 @@ async function runVotePhase() {
   await GameUI.showDeathEffect(executed);
 
   // Handle execution effects (lover chain, queen chain, etc.)
-  gameLogic.handleExecution(executed);
+  gameLogic.handleExecution(executedId);
 
-  gameState.killPlayer(executedId);
+  // killPlayer is already called inside handleExecution
+  if (gameState.getPlayerById(executedId)?.isAlive) {
+    gameState.killPlayer(executedId);
+  }
   GameUI.renderPlayers(gameState);
 
   GameUI.addMessage(`${executed.name} の役職は【${ROLES[executed.role].name}】でした。`, null, "system");
@@ -375,7 +378,7 @@ async function runNightPhase() {
 
   const alive = gameState.getAlive();
   const human = gameState.getHuman();
-  const nightActions = { divine: null, guard: null, attack: null, heal: null, poison: null };
+  const nightActions = {};
 
   // Human night action
   if (human.isAlive && ROLES[human.role] && ROLES[human.role].nightAction) {
@@ -384,36 +387,49 @@ async function runNightPhase() {
     let actionTargets = targets;
     let actionLabel = "";
 
+    const abilityLabels = {
+      guard: "護衛", divine: "占い", attack: "襲撃", heal: "治癒",
+      trap: "罠設置", sageDiv: "賢者占い", fakeDivine: "占い",
+      steal: "怪盗", haunt: "呪い", bless: "祝福", witch: "魔女",
+      flee: "逃亡", sorcery: "妖術", frame: "フレーム",
+      weakDivine: "占い", gift: "贈り物", watchdog: "番犬",
+      matchmake: "恋結び", investigate: "調査", housekeep: "訪問",
+      gamble: "ギャンブル", paladinCheck: "聖騎士調査", darkDivine: "闇占い",
+      seal: "封印", zombieAttack: "ゾンビ襲撃", seduce: "誘惑",
+      chooseLove: "選択", poison: "毒殺"
+    };
+    actionLabel = abilityLabels[ability] || ROLES[human.role].name;
+
     if (ability === "guard") {
       actionTargets = targets.filter(p => p.id !== gameState.lastGuardTarget);
-      actionLabel = "護衛";
       GameUI.addMessage("🛡 護衛する人を選んでください（前夜と同じ人は不可）", null, "system");
-    } else if (ability === "divine") {
-      actionLabel = "占い";
+    } else if (ability === "divine" || ability === "sageDiv" || ability === "fakeDivine" || ability === "weakDivine") {
       GameUI.addMessage("🔮 占う人を選んでください", null, "system");
     } else if (ability === "attack") {
-      actionTargets = targets.filter(p => p.role !== "werewolf");
-      actionLabel = "襲撃";
+      actionTargets = targets.filter(p => {
+        const r = ROLES[p.role];
+        return !r || r.team !== "werewolf";
+      });
       GameUI.addMessage("🐺 襲撃する人を選んでください", null, "system");
-    } else if (ability === "mediumDive") {
-      actionLabel = "霊能";
-      GameUI.addMessage("👁 対象を選んでください", null, "system");
-    } else if (ability === "heal") {
-      actionLabel = "治癒";
-      GameUI.addMessage("💊 治癒する人を選んでください", null, "system");
-    } else if (ability === "poison") {
-      actionLabel = "毒殺";
-      GameUI.addMessage("☠ 毒殺する人を選んでください", null, "system");
+    } else {
+      GameUI.addMessage(`${ROLES[human.role].icon || '✨'} ${actionLabel}する人を選んでください`, null, "system");
     }
 
-    await new Promise(resolve => {
-      GameUI.showNightActionButtons(actionTargets, actionLabel, (targetId) => {
-        nightActions[ability] = targetId;
-        const target = gameState.getPlayerById(targetId);
-        GameUI.addMessage(`${target.name} を選択しました`, null, "system");
-        resolve();
+    if (actionTargets.length > 0) {
+      await new Promise(resolve => {
+        GameUI.showNightActionButtons(actionTargets, actionLabel, (targetId) => {
+          nightActions[ability] = targetId;
+          const target = gameState.getPlayerById(targetId);
+          GameUI.addMessage(`${target.name} を選択しました`, null, "system");
+          resolve();
+        });
       });
-    });
+    } else {
+      GameUI.addMessage("対象がいません。", null, "system");
+      await new Promise(resolve => {
+        GameUI.showContinueButton("次へ", resolve);
+      });
+    }
   } else if (human.isAlive) {
     GameUI.addMessage("あなたには夜の能力がありません。夜が明けるのを待ちましょう…", null, "system");
     await new Promise(resolve => {
@@ -454,20 +470,20 @@ async function runNightPhase() {
   gameState.phase = "day";
   GameUI.updateHeader(gameState);
 
-  // Show attack result
-  if (result.killed) {
-    const killed = gameState.getPlayerById(result.killed);
-    GameUI.addMessage(`${killed.name} が無残な姿で発見されました…`, null, "danger");
+  // Show attack results (killed is an array)
+  const killedIds = Array.isArray(result.killed) ? result.killed : (result.killed ? [result.killed] : []);
+  if (killedIds.length > 0) {
+    for (const killedId of killedIds) {
+      const killed = gameState.getPlayerById(killedId);
+      if (!killed) continue;
+      GameUI.addMessage(`${killed.name} が無残な姿で発見されました…`, null, "danger");
+      await GameUI.showDeathEffect(killed);
 
-    await GameUI.showDeathEffect(killed);
-    GameUI.renderPlayers(gameState);
-
-    if (killed.isHuman) {
-      GameUI.addMessage("あなたは人狼に襲撃されました…。以降は観戦モードです。", null, "danger");
+      if (killed.isHuman) {
+        GameUI.addMessage("あなたは人狼に襲撃されました…。以降は観戦モードです。", null, "danger");
+      }
     }
-
-    // Handle death effects (lover chain, etc.)
-    gameState.killPlayer(result.killed);
+    GameUI.renderPlayers(gameState);
   } else {
     GameUI.addMessage("昨晩は誰も襲撃されませんでした。", null, "system");
   }

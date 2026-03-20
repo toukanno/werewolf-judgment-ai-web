@@ -131,8 +131,23 @@ const GameUI = {
   showChatInput(onSend) {
     const html = `
       <div class="chat-input-container">
+        <button id="co-btn" class="btn co-btn">CO</button>
         <input type="text" id="chat-input" class="chat-input" placeholder="発言を入力...">
         <button id="chat-send-btn" class="btn btn-primary">発言</button>
+      </div>
+      <div id="co-popup" class="co-popup" style="display:none;">
+        <div class="co-popup-title">役職カミングアウト</div>
+        <div class="co-popup-grid">
+          <button class="co-role-btn" data-co="占い師">🔮 占い師</button>
+          <button class="co-role-btn" data-co="霊能者">👁 霊能者</button>
+          <button class="co-role-btn" data-co="狩人">🛡 狩人</button>
+          <button class="co-role-btn" data-co="市民">👤 市民</button>
+          <button class="co-role-btn" data-co="騎士">🛡 騎士</button>
+          <button class="co-role-btn" data-co="パン屋">🍞 パン屋</button>
+          <button class="co-role-btn" data-co="狂人">🃏 狂人</button>
+          <button class="co-role-btn" data-co="人狼">🐺 人狼</button>
+        </div>
+        <button id="co-cancel" class="btn btn-sm co-cancel">キャンセル</button>
       </div>
     `;
 
@@ -140,6 +155,9 @@ const GameUI = {
 
     const input = document.getElementById('chat-input');
     const sendBtn = document.getElementById('chat-send-btn');
+    const coBtn = document.getElementById('co-btn');
+    const coPopup = document.getElementById('co-popup');
+    const coCancel = document.getElementById('co-cancel');
 
     if (!input || !sendBtn) return;
 
@@ -155,6 +173,29 @@ const GameUI = {
     input.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') send();
     });
+
+    // CO button
+    if (coBtn && coPopup) {
+      coBtn.addEventListener('click', () => {
+        coPopup.style.display = coPopup.style.display === 'none' ? 'block' : 'none';
+      });
+    }
+    if (coCancel) {
+      coCancel.addEventListener('click', () => {
+        coPopup.style.display = 'none';
+      });
+    }
+
+    // CO role buttons
+    document.querySelectorAll('.co-role-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const roleName = btn.dataset.co;
+        onSend(`【${roleName}CO】${roleName}です！`);
+        coPopup.style.display = 'none';
+      });
+    });
+
+    input.focus();
   },
 
   /**
