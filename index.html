@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>人狼ジャッジメントAI</title>
-<link rel="stylesheet" href="public/style.css">
+<link rel="stylesheet" href="public/style.css?v=20260320b">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐺</text></svg>">
 </head>
 <body>
@@ -34,6 +34,7 @@
         <div class="title-actions">
           <button class="btn btn-primary btn-lg" onclick="showScreen('lobby')">ゲーム開始</button>
           <button class="btn btn-ghost btn-lg" onclick="showScreen('lobby')">設定を見る</button>
+          <button class="btn btn-sm" onclick="clearCacheAndReload()" style="margin-top:8px;font-size:11px;opacity:0.6;">🔄 キャッシュクリア</button>
         </div>
       </div>
       <div class="title-panel">
@@ -192,14 +193,24 @@
 
 </div>
 
-<script src="src/data/roles.js"></script>
-<script src="src/data/players.js"></script>
-<script src="src/game/state.js"></script>
-<script src="src/game/logic.js"></script>
-<script src="src/ai/mock.js"></script>
-<script src="src/ai/openrouter.js"></script>
-<script src="src/ui/screens.js"></script>
-<script src="src/ui/game-ui.js"></script>
-<script src="public/app.js"></script>
+<script src="src/data/roles.js?v=20260320b"></script>
+<script src="src/data/players.js?v=20260320b"></script>
+<script src="src/game/state.js?v=20260320b"></script>
+<script src="src/game/logic.js?v=20260320b"></script>
+<script src="src/ai/mock.js?v=20260320b"></script>
+<script src="src/ai/openrouter.js?v=20260320b"></script>
+<script src="src/ui/screens.js?v=20260320b"></script>
+<script src="src/ui/game-ui.js?v=20260320b"></script>
+<script src="public/app.js?v=20260320b"></script>
+<script>
+// Cache clear button
+function clearCacheAndReload() {
+  if ('caches' in window) {
+    caches.keys().then(names => names.forEach(name => caches.delete(name)));
+  }
+  // Force reload with cache bust
+  window.location.href = window.location.pathname + '?t=' + Date.now();
+}
+</script>
 </body>
 </html>
