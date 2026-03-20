@@ -100,8 +100,9 @@ class OpenRouterAI {
       return `${sender}: ${l.content}`;
     }).join("\n");
 
-    const role = ROLES[player.role];
-    const roleInfo = role ? `${role.name} (${role.team})` : player.role;
+    const effectiveRole = state.getEffectiveRole(player.id);
+    const role = ROLES[effectiveRole];
+    const roleInfo = role ? `${role.name} (${role.team})` : effectiveRole;
 
     let roleContext = `あなたは人狼ゲームのプレイヤーです。
 名前: ${player.name}
@@ -117,7 +118,7 @@ ${recentLog || "(まだ発言はありません)"}
 JSON形式で応答してください: {"statement": "...", "reasoning": "..."}`;
 
     // Add role-specific context
-    if (player.role === "werewolf" || ROLES[player.role]?.team === "werewolf") {
+    if (effectiveRole === "werewolf" || role?.team === "werewolf") {
       const allies = state.getAliveWerewolves().filter(p => p.id !== player.id).map(p => p.name).join("、");
       roleContext = `あなたは人狼ゲームのプレイヤーです。
 名前: ${player.name}
@@ -134,7 +135,7 @@ ${recentLog || "(まだ発言はありません)"}
 JSON形式で応答してください: {"statement": "...", "reasoning": "..."}`;
     }
 
-    if (player.role === "seer") {
+    if (effectiveRole === "seer") {
       const divined = Object.entries(state.divinedPlayers).map(([id, result]) => {
         const p = state.getPlayerById(id);
         return `${p?.name}: ${result === "werewolf" ? "人狼" : "村人"}`;
@@ -233,7 +234,8 @@ JSON形式で応答してください: {"statement": "...", "reasoning": "..."}`
    */
   async getNightAction(player, targets, state) {
     try {
-      const role = ROLES[player.role];
+      const effectiveRoleId = state ? state.getEffectiveRole(player.id) : player.role;
+      const role = ROLES[effectiveRoleId];
       if (!role || !role.nightAction) return null;
 
       const availableTargets = Array.isArray(targets)

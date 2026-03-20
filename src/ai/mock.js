@@ -191,7 +191,7 @@ class MockAI {
   }
 
   async getStatement(player, state) {
-    const role = player.role;
+    const role = state.getEffectiveRole(player.id);
     const roleData = ROLES[role];
     const team = roleData ? roleData.team : "village";
     const isDay1 = state.day === 1;
@@ -258,14 +258,14 @@ class MockAI {
 
     if (!targets || targets.length === 0) return null;
 
-    const role = player.role;
+    const role = state.getEffectiveRole(player.id);
     const roleData = ROLES[role];
     const team = roleData ? roleData.team : "village";
 
     if (team === "werewolf") {
       // Wolves vote to eliminate non-wolves
       const nonWolves = targets.filter(t => {
-        const r = ROLES[t.role];
+        const r = ROLES[state.getEffectiveRole(t.id)];
         return r && r.team !== "werewolf";
       });
       if (nonWolves.length > 0) return this._pick(nonWolves).id;
@@ -273,7 +273,7 @@ class MockAI {
                role === "blackCat" || role === "sorcerer" || role === "wolfBoy") {
       // Wolf-aligned village roles vote to eliminate village
       const villagers = targets.filter(t => {
-        const r = ROLES[t.role];
+        const r = ROLES[state.getEffectiveRole(t.id)];
         return r && r.team === "village";
       });
       if (villagers.length > 0) return this._pick(villagers).id;
@@ -284,7 +284,7 @@ class MockAI {
   async getReaction(player, humanMessage, state) {
     await new Promise(r => setTimeout(r, 200 + Math.random() * 300));
 
-    const roleData = ROLES[player.role];
+    const roleData = ROLES[state.getEffectiveRole(player.id)];
     const team = roleData ? roleData.team : "village";
     const alive = state.getAlive();
     const target = this._randomTarget(alive, player.id);
@@ -334,7 +334,7 @@ class MockAI {
   async getNightAction(player, targets, state) {
     await new Promise(r => setTimeout(r, 200 + Math.random() * 400));
 
-    const role = player.role;
+    const role = state.getEffectiveRole(player.id);
     const roleData = ROLES[role];
     if (!roleData || !roleData.nightAction) return null;
 
@@ -345,7 +345,7 @@ class MockAI {
 
     if (ability === "attack") {
       const villagers = targets.filter(t => {
-        const r = ROLES[t.role];
+        const r = ROLES[state.getEffectiveRole(t.id)];
         return r && r.team === "village";
       });
       return villagers.length > 0 ? this._pick(villagers).id : this._pick(targets).id;

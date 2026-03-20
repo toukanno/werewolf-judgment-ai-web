@@ -539,7 +539,8 @@ const GameUI = {
       } else if (winner === 'lover') {
         return state.loversIds.includes(p.id);
       } else {
-        return ROLES[p.role]?.team === winner;
+        const effectiveRole = state.getEffectiveRole(p.id);
+      return ROLES[effectiveRole]?.team === winner;
       }
     });
 
@@ -547,7 +548,7 @@ const GameUI = {
       winnersList += `
         <div class="winner-badge">
           <span class="winner-name">${this.escapeHtml(player.name)}</span>
-          <span class="winner-role">${ROLES[player.role]?.name || '?'}</span>
+          <span class="winner-role">${ROLES[state.getEffectiveRole(player.id)]?.name || '?'}</span>
         </div>
       `;
     }
