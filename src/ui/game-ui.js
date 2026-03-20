@@ -1,222 +1,475 @@
-// ゲームUI — 人狼ジャッジメント風
-
-function escapeHtml(value) {
-  return String(value).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
-}
-
-function renderMarkdown(content) {
-  let safe = escapeHtml(content);
-  safe = safe.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-  safe = safe.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-  return `<p>${safe}</p>`;
-}
-
-function getAvatarHTML(player, size = 40) {
-  const color = player.avatarColor || "#aaa";
-  const bg = player.avatarBg || "#333";
-  const initial = player.initial || player.name.charAt(0);
-  return `<div class="avatar-circle" style="width:${size}px;height:${size}px;background:linear-gradient(135deg,${bg},${color}30);border:2px solid ${color};color:${color};font-size:${size*0.42}px;"><span>${initial}</span></div>`;
-}
+/**
+ * GameUI - User Interface Management
+ * Handles all rendering and interaction for the werewolf game UI
+ * 人狼ジャッジメント-style interface
+ */
 
 const GameUI = {
+  /**
+   * Update header with day/phase information
+   */
   updateHeader(state) {
-    document.getElementById("day-count").textContent = `${state.day}日目`;
-    const phaseLabel = document.getElementById("phase-label");
-    if (state.phase === "day") {
-      phaseLabel.innerHTML = '<span class="phase-icon">☀</span> 昼の議論';
-      phaseLabel.className = "phase-badge phase-day";
-    } else if (state.phase === "night") {
-      phaseLabel.innerHTML = '<span class="phase-icon">🌙</span> 夜';
-      phaseLabel.className = "phase-badge phase-night";
-    } else if (state.phase === "vote") {
-      phaseLabel.innerHTML = '<span class="phase-icon">⚔</span> 投票';
-      phaseLabel.className = "phase-badge phase-vote";
-    }
-    document.getElementById("alive-count").textContent = state.getAlive().length;
-    document.getElementById("total-count").textContent = state.players.length;
-  },
+    const header = document.getElementById('game-header');
+    if (!header) return;
 
-  renderPlayers(state) {
-    const list = document.getElementById("player-list");
-    list.innerHTML = state.players.map(p => {
-      const classes = ["player-chip"];
-      if (!p.isAlive) classes.push("dead");
-      if (p.isHuman) classes.push("is-you");
-      return `<div class="${classes.join(" ")}">
-        ${getAvatarHTML(p, 28)}
-        <span class="chip-name">${escapeHtml(p.name)}</span>
-        ${!p.isAlive ? '<span class="chip-dead-mark">✕</span>' : ''}
-      </div>`;
-    }).join("");
-  },
+    const phaseText = state.phase === 'day' ? '昼' : '夜';
+    const phaseEmoji = state.phase === 'day' ? '☀️' : '🌙';
 
-  addMessage(content, sender, type, player) {
-    const msgs = document.getElementById("messages");
-    const msg = document.createElement("div");
-    const classes = ["msg"];
-    if (type === "system") classes.push("system");
-    if (type === "danger") classes.push("system","danger");
-    if (type === "you") classes.push("you");
-    if (type === "ai") classes.push("ai");
-    msg.className = classes.join(" ");
-
-    const rendered = renderMarkdown(content);
-
-    if (type === "ai" && player) {
-      msg.innerHTML = `<div class="msg-avatar">${getAvatarHTML(player, 36)}</div>
-        <div class="msg-content"><div class="msg-name" style="color:${player.avatarColor || '#ccc'}">${escapeHtml(player.name)}</div><div class="msg-body">${rendered}</div></div>`;
-    } else if (type === "you" && player) {
-      msg.innerHTML = `<div class="msg-content"><div class="msg-name" style="color:${player.avatarColor || '#ffd54f'}">${escapeHtml(player.name)}</div><div class="msg-body">${rendered}</div></div>
-        <div class="msg-avatar">${getAvatarHTML(player, 36)}</div>`;
-    } else {
-      msg.innerHTML = `<div class="msg-body">${rendered}</div>`;
-    }
-
-    msgs.appendChild(msg);
-    const area = document.getElementById("message-area");
-    area.scrollTop = area.scrollHeight;
-  },
-
-  clearMessages() {
-    document.getElementById("messages").innerHTML = "";
-  },
-
-  setAction(html) {
-    document.getElementById("action-area").innerHTML = html;
-  },
-
-  showChatInput(onSend) {
-    this.setAction(`
-      <div class="chat-input-area">
-        <input type="text" class="input chat-input" id="chat-input" placeholder="発言を入力..." maxlength="200">
-        <button class="btn btn-send" id="chat-send-btn">送信</button>
+    header.innerHTML = `
+      <div class="header-content">
+        <h2>${phaseEmoji} ${state.day}日目 ${phaseText}フェーズ</h2>
+        <p class="phase-info">プレイヤー数: ${state.getAlivePlayers().length}/${state.players.length}</p>
       </div>
-    `);
-    const input = document.getElementById("chat-input");
-    const btn = document.getElementById("chat-send-btn");
+    `;
+  },
+
+  /**
+   * Render player list with avatars and status
+   */
+  renderPlayers(state) {
+    const container = document.getElementById('player-list');
+    if (!container) return;
+
+    const players = state.players;
+    const alivePlayers = state.getAlivePlayers();
+
+    let html = '<div class="player-chips">';
+
+    for (const player of players) {
+      const isAlive = alivePlayers.some(p => p.id === player.id);
+      const isMe = player.isAI === false;
+      const role = ROLES[state.getEffectiveRole(player.id)];
+      const roleIcon = role ? role.icon : '❓';
+
+      const statusClass = isAlive ? 'alive' : 'dead';
+      const meClass = isMe ? 'me' : '';
+      const backgroundColor = isAlive
+        ? (TEAM_INFO[role?.team || 'other']?.color || '#999')
+        : '#666';
+
+      html += `
+        <div class="player-chip ${statusClass} ${meClass}"
+             style="background-color: ${backgroundColor}; opacity: ${isAlive ? 1 : 0.5}">
+          <div class="avatar" style="background-color: ${backgroundColor}">
+            <span class="initial">${player.name.charAt(0)}</span>
+          </div>
+          <div class="player-name">${player.name}</div>
+          ${!isAlive ? '<div class="status-badge">×</div>' : ''}
+          ${isMe ? '<div class="me-badge">YOU</div>' : ''}
+        </div>
+      `;
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+  },
+
+  /**
+   * Add message to chat area
+   */
+  addMessage(content, sender = '', type = 'system', player = null) {
+    const messagesArea = document.getElementById('messages-area');
+    if (!messagesArea) return;
+
+    const messageEl = document.createElement('div');
+    messageEl.className = `message message-${type}`;
+
+    let html = '';
+
+    if (type === 'system') {
+      html = `<div class="system-message">${this.escapeHtml(content)}</div>`;
+    } else if (type === 'ai') {
+      html = `<div class="message-content">
+        <span class="sender ai-sender">AI (${sender})</span>
+        <div class="text">${this.renderMarkdown(content)}</div>
+      </div>`;
+    } else if (type === 'you') {
+      html = `<div class="message-content">
+        <span class="sender you-sender">あなた</span>
+        <div class="text">${this.renderMarkdown(content)}</div>
+      </div>`;
+    } else if (type === 'danger') {
+      html = `<div class="danger-message">
+        <span class="danger-icon">⚠️</span>
+        <span>${this.escapeHtml(content)}</span>
+      </div>`;
+    } else if (player) {
+      const role = ROLES[player.role || 'villager'];
+      const roleColor = TEAM_INFO[role?.team || 'other']?.color || '#999';
+      html = `<div class="message-content">
+        <span class="sender" style="background-color: ${roleColor}">${this.escapeHtml(player.name)}</span>
+        <div class="text">${this.renderMarkdown(content)}</div>
+      </div>`;
+    }
+
+    messageEl.innerHTML = html;
+    messagesArea.appendChild(messageEl);
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+  },
+
+  /**
+   * Clear all messages
+   */
+  clearMessages() {
+    const messagesArea = document.getElementById('messages-area');
+    if (messagesArea) {
+      messagesArea.innerHTML = '';
+    }
+  },
+
+  /**
+   * Set action area content
+   */
+  setAction(html) {
+    const actionArea = document.getElementById('action-area');
+    if (actionArea) {
+      actionArea.innerHTML = html;
+    }
+  },
+
+  /**
+   * Show text input for day discussion
+   */
+  showChatInput(onSend) {
+    const html = `
+      <div class="chat-input-container">
+        <input type="text" id="chat-input" class="chat-input" placeholder="発言を入力...">
+        <button id="chat-send-btn" class="btn btn-primary">発言</button>
+      </div>
+    `;
+
+    this.setAction(html);
+
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send-btn');
+
+    if (!input || !sendBtn) return;
+
     const send = () => {
       const text = input.value.trim();
-      if (text) { onSend(text); input.value = ""; }
+      if (text) {
+        onSend(text);
+        input.value = '';
+      }
     };
-    btn.onclick = send;
-    input.onkeydown = (e) => { if (e.key === "Enter") send(); };
-    input.focus();
+
+    sendBtn.addEventListener('click', send);
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') send();
+    });
   },
 
+  /**
+   * Show voting buttons with player portraits
+   */
   showVoteButtons(targets, onVote) {
-    const grid = targets.map(p =>
-      `<button class="vote-card" data-id="${p.id}">
-        ${getAvatarHTML(p, 52)}
-        <span class="vote-name">${escapeHtml(p.name)}</span>
-      </button>`
-    ).join("");
-    this.setAction(`<div class="vote-label">⚔ 処刑する人を選んでください</div><div class="vote-grid">${grid}</div>`);
-    document.querySelectorAll(".vote-card").forEach(btn => {
-      btn.onclick = () => {
-        document.querySelectorAll(".vote-card").forEach(b => b.classList.remove("selected"));
-        btn.classList.add("selected");
-        setTimeout(() => onVote(btn.dataset.id), 300);
-      };
-    });
-  },
+    let html = '<div class="vote-grid">';
 
-  showNightActionButtons(targets, actionName, onSelect) {
-    const grid = targets.map(p =>
-      `<button class="vote-card night-card" data-id="${p.id}">
-        ${getAvatarHTML(p, 52)}
-        <span class="vote-name">${escapeHtml(p.name)}</span>
-      </button>`
-    ).join("");
-    this.setAction(`<div class="vote-label">🌙 ${actionName}する対象を選んでください</div><div class="vote-grid">${grid}</div>`);
-    document.querySelectorAll(".vote-card").forEach(btn => {
-      btn.onclick = () => {
-        document.querySelectorAll(".vote-card").forEach(b => b.classList.remove("selected"));
-        btn.classList.add("selected");
-        setTimeout(() => onSelect(btn.dataset.id), 300);
-      };
-    });
-  },
+    for (const target of targets) {
+      const role = ROLES[target.role || 'villager'];
+      const teamColor = TEAM_INFO[role?.team || 'other']?.color || '#999';
+      const initial = target.name.charAt(0);
 
-  showContinueButton(label, onClick) {
-    this.setAction(`<button class="btn btn-primary btn-continue">${label}</button>`);
-    document.querySelector(".btn-continue").onclick = onClick;
-  },
-
-  // Role reveal animation
-  async showRoleReveal(player) {
-    return new Promise(resolve => {
-      const overlay = document.getElementById("role-overlay");
-      const role = ROLES[player.role];
-      overlay.innerHTML = `
-        <div class="role-reveal">
-          <div class="role-reveal-card">
-            <div class="role-reveal-icon">${role.icon}</div>
-            <div class="role-reveal-name" style="color:${role.color}">${role.name}</div>
-            <div class="role-reveal-team ${role.team}">${role.team === "village" ? "村人陣営" : "人狼陣営"}</div>
-            <div class="role-reveal-desc">${role.description}</div>
-            <button class="btn btn-primary role-reveal-btn">了解</button>
+      html += `
+        <button class="vote-btn" onclick="(event) => {event.stopPropagation(); GameUI.onVoteBtnClick('${target.id}')}">
+          <div class="vote-avatar" style="background-color: ${teamColor}">
+            ${initial}
           </div>
-        </div>
+          <div class="vote-name">${this.escapeHtml(target.name)}</div>
+        </button>
       `;
-      overlay.classList.add("active");
-      overlay.querySelector(".role-reveal-btn").onclick = () => {
-        overlay.classList.remove("active");
-        setTimeout(resolve, 300);
-      };
-    });
-  },
-
-  // Death effect
-  async showDeathEffect(player) {
-    return new Promise(resolve => {
-      const overlay = document.getElementById("role-overlay");
-      overlay.innerHTML = `
-        <div class="death-effect">
-          <div class="death-card">
-            ${getAvatarHTML(player, 80)}
-            <div class="death-name">${escapeHtml(player.name)}</div>
-            <div class="death-text">は死亡した…</div>
-            <div class="death-role">${ROLES[player.role].icon} ${ROLES[player.role].name}</div>
-          </div>
-        </div>
-      `;
-      overlay.classList.add("active");
-      setTimeout(() => {
-        overlay.classList.remove("active");
-        setTimeout(resolve, 300);
-      }, 2000);
-    });
-  },
-
-  showResult(winner, state) {
-    const title = document.getElementById("result-title");
-    const message = document.getElementById("result-message");
-    const playersDiv = document.getElementById("result-players");
-
-    if (winner === "village") {
-      title.innerHTML = '🎉 村人陣営の勝利';
-      title.className = "result-title village-win";
-      message.textContent = "すべての人狼を見つけ出した。村に平和が訪れる。";
-    } else {
-      title.innerHTML = '🐺 人狼陣営の勝利';
-      title.className = "result-title werewolf-win";
-      message.textContent = "人狼が村を支配した。闇が村を覆う…";
     }
 
-    playersDiv.innerHTML = state.players.map(p => {
-      const dead = p.isAlive ? "" : " dead";
-      const role = ROLES[p.role];
-      const isWinner = (winner === "village" && role.team === "village") || (winner === "werewolf" && role.team === "werewolf");
-      return `<div class="result-player${dead}${isWinner ? ' winner' : ''}">
-        ${getAvatarHTML(p, 44)}
-        <div class="result-player-info">
-          <div class="result-player-name">${escapeHtml(p.name)} ${p.isHuman ? '<span class="you-tag">YOU</span>' : ''}</div>
-          <div class="result-player-role" style="color:${role.color}">${role.icon} ${role.name}</div>
-          <div class="result-player-status">${p.isAlive ? "生存" : "死亡"}</div>
-        </div>
-      </div>`;
-    }).join("");
+    html += '</div>';
+    this.setAction(html);
 
-    showScreen("result");
+    // Store the callback so onclick can access it
+    window._currentVoteCallback = onVote;
+  },
+
+  onVoteBtnClick(playerId) {
+    if (window._currentVoteCallback) {
+      window._currentVoteCallback(playerId);
+    }
+  },
+
+  /**
+   * Show buttons for night action target selection
+   */
+  showNightActionButtons(targets, actionName, onSelect) {
+    let html = `<div class="night-action-container">
+      <h3>${this.escapeHtml(actionName)}の対象を選択</h3>
+      <div class="target-grid">`;
+
+    for (const target of targets) {
+      const role = ROLES[target.role || 'villager'];
+      const teamColor = TEAM_INFO[role?.team || 'other']?.color || '#999';
+
+      html += `
+        <button class="target-btn" onclick="GameUI.onNightActionSelect('${target.id}')">
+          <div class="target-avatar" style="background-color: ${teamColor}">
+            ${target.name.charAt(0)}
+          </div>
+          <div class="target-name">${this.escapeHtml(target.name)}</div>
+        </button>
+      `;
+    }
+
+    html += '</div></div>';
+    this.setAction(html);
+
+    window._currentNightActionCallback = onSelect;
+  },
+
+  onNightActionSelect(playerId) {
+    if (window._currentNightActionCallback) {
+      window._currentNightActionCallback(playerId);
+    }
+  },
+
+  /**
+   * Show day-time action buttons (assassin, dictator, straw doll, etc)
+   */
+  showDayActionButtons(player, state, callbacks) {
+    const role = ROLES[state.getEffectiveRole(player.id)];
+    if (!role || !role.dayAction) return;
+
+    let html = `<div class="day-action-container">
+      <h3>${this.escapeHtml(role.name)}の昼間能力を使用</h3>
+      <div class="day-action-buttons">`;
+
+    const targets = state.getAlivePlayers().filter(p => p.id !== player.id);
+
+    if (role.id === 'assassin') {
+      html += '<p class="action-description">処刑の投票を1票追加できます</p>';
+      for (const target of targets) {
+        const targetRole = ROLES[state.getEffectiveRole(target.id)];
+        const color = TEAM_INFO[targetRole?.team || 'other']?.color || '#999';
+        html += `
+          <button class="day-action-btn" onclick="GameUI.onDayAction('assassin', '${target.id}')">
+            <span style="background-color: ${color}; padding: 5px 10px; border-radius: 4px; color: white;">
+              ${this.escapeHtml(target.name)}に投票
+            </span>
+          </button>
+        `;
+      }
+    } else if (role.id === 'dictator') {
+      html += '<p class="action-description">1人を処刑できます</p>';
+      for (const target of targets) {
+        const targetRole = ROLES[state.getEffectiveRole(target.id)];
+        const color = TEAM_INFO[targetRole?.team || 'other']?.color || '#999';
+        html += `
+          <button class="day-action-btn" onclick="GameUI.onDayAction('dictator', '${target.id}')">
+            <span style="background-color: ${color}; padding: 5px 10px; border-radius: 4px; color: white;">
+              ${this.escapeHtml(target.name)}を処刑
+            </span>
+          </button>
+        `;
+      }
+    } else if (role.id === 'straw_doll') {
+      html += '<p class="action-description">1人の処刑を免れる権を譲ります</p>';
+      for (const target of targets) {
+        html += `
+          <button class="day-action-btn" onclick="GameUI.onDayAction('straw_doll', '${target.id}')">
+            ${this.escapeHtml(target.name)}に譲る
+          </button>
+        `;
+      }
+    }
+
+    html += '</div></div>';
+    this.setAction(html);
+
+    window._dayActionCallback = callbacks;
+  },
+
+  onDayAction(actionType, targetId) {
+    if (window._dayActionCallback && window._dayActionCallback[actionType]) {
+      window._dayActionCallback[actionType](targetId);
+    }
+  },
+
+  /**
+   * Show continue button for phase transitions
+   */
+  showContinueButton(label, onClick) {
+    const html = `
+      <div class="continue-container">
+        <button id="continue-btn" class="btn btn-primary btn-large">
+          ${this.escapeHtml(label)}
+        </button>
+      </div>
+    `;
+
+    this.setAction(html);
+
+    const btn = document.getElementById('continue-btn');
+    if (btn) {
+      btn.addEventListener('click', onClick);
+    }
+  },
+
+  /**
+   * Show dramatic role reveal card
+   */
+  showRoleReveal(player) {
+    const role = ROLES[player.role || 'villager'];
+    const team = role?.team || 'other';
+    const teamInfo = TEAM_INFO[team];
+
+    const overlay = document.getElementById('role-overlay');
+    if (!overlay) return;
+
+    const revealCard = document.createElement('div');
+    revealCard.className = 'role-reveal-card';
+    revealCard.style.borderColor = teamInfo.color;
+
+    const html = `
+      <div class="reveal-header" style="background-color: ${teamInfo.color}">
+        <h2>${this.escapeHtml(player.name)}</h2>
+      </div>
+      <div class="reveal-body">
+        <div class="role-icon" style="color: ${role?.color || '#999'}">
+          ${role?.icon || '❓'}
+        </div>
+        <div class="role-name">${this.escapeHtml(role?.name || '？？？')}</div>
+        <div class="team-name" style="color: ${teamInfo.color}">
+          ${this.escapeHtml(teamInfo.name)}
+        </div>
+        <div class="role-description">
+          ${this.renderMarkdown(role?.description || '')}
+        </div>
+      </div>
+    `;
+
+    revealCard.innerHTML = html;
+    overlay.innerHTML = '';
+    overlay.appendChild(revealCard);
+    overlay.classList.add('active');
+
+    return new Promise(resolve => {
+      setTimeout(() => {
+        overlay.classList.remove('active');
+        resolve();
+      }, 4000);
+    });
+  },
+
+  /**
+   * Show death animation/effect
+   */
+  showDeathEffect(player) {
+    const overlay = document.getElementById('role-overlay');
+    if (!overlay) return;
+
+    const deathEl = document.createElement('div');
+    deathEl.className = 'death-effect';
+
+    deathEl.innerHTML = `
+      <div class="death-content">
+        <div class="death-icon">💀</div>
+        <div class="death-name">${this.escapeHtml(player.name)}</div>
+        <div class="death-text">が死亡しました</div>
+      </div>
+    `;
+
+    overlay.innerHTML = '';
+    overlay.appendChild(deathEl);
+    overlay.classList.add('active');
+
+    return new Promise(resolve => {
+      setTimeout(() => {
+        overlay.classList.remove('active');
+        resolve();
+      }, 3000);
+    });
+  },
+
+  /**
+   * Show game result screen
+   */
+  showResult(winner, state) {
+    const screen = document.getElementById('screen-result');
+    if (!screen) return;
+
+    const winnerTeamInfo = TEAM_INFO[winner];
+    const winnerColor = winnerTeamInfo?.color || '#999';
+
+    let winnersList = '';
+    const winnerPlayers = state.players.filter(p => {
+      if (winner === 'fox') {
+        return state.isFoxWinner && p.role === 'fox';
+      } else if (winner === 'lover') {
+        return state.isLoverWinner && p.role === 'lover';
+      } else {
+        return ROLES[p.role]?.team === winner;
+      }
+    });
+
+    for (const player of winnerPlayers) {
+      winnersList += `
+        <div class="winner-badge">
+          <span class="winner-name">${this.escapeHtml(player.name)}</span>
+          <span class="winner-role">${ROLES[player.role]?.name || '?'}</span>
+        </div>
+      `;
+    }
+
+    const resultHtml = `
+      <div class="result-container">
+        <h1 class="result-title" style="color: ${winnerColor}">
+          ${this.escapeHtml(winnerTeamInfo?.name || '?陣営')}の勝利！
+        </h1>
+        <div class="winners-grid">
+          ${winnersList}
+        </div>
+        <button id="restart-btn" class="btn btn-primary btn-large">もう一度プレイ</button>
+      </div>
+    `;
+
+    screen.innerHTML = resultHtml;
+
+    const restartBtn = document.getElementById('restart-btn');
+    if (restartBtn && window._gameRestartCallback) {
+      restartBtn.addEventListener('click', window._gameRestartCallback);
+    }
+  },
+
+  /**
+   * Escape HTML special characters
+   */
+  escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = value;
+    return div.innerHTML;
+  },
+
+  /**
+   * Simple markdown rendering for **bold** and *italic*
+   */
+  renderMarkdown(content) {
+    if (!content) return '';
+
+    return this.escapeHtml(content)
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/\n/g, '<br>');
+  },
+
+  /**
+   * Get HTML for player avatar
+   */
+  getAvatarHTML(player, size = 'medium') {
+    const role = ROLES[player.role || 'villager'];
+    const teamColor = TEAM_INFO[role?.team || 'other']?.color || '#999';
+    const initial = player.name.charAt(0);
+
+    const sizeClass = `avatar-${size}`;
+
+    return `
+      <div class="avatar ${sizeClass}" style="background-color: ${teamColor}">
+        <span class="initial">${initial}</span>
+      </div>
+    `;
   }
 };

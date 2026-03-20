@@ -1,65 +1,371 @@
-// ゲーム進行ロジック
+/**
+ * 人狼ジャッジメント - Game Logic Engine
+ * Handles vote tallying, night ability resolution, and complex role interactions
+ */
+
 class GameLogic {
   constructor(state, ai) {
     this.state = state;
     this.ai = ai;
   }
 
+  /**
+   * Tally votes with mayor's double vote
+   */
   tallyVotes(votes) {
     const counts = {};
-    for (const targetId of Object.values(votes)) {
-      counts[targetId] = (counts[targetId] || 0) + 1;
+
+    for (const [voterId, targetId] of Object.entries(votes)) {
+      const voter = this.state.getPlayerById(voterId);
+      const role = ROLES[this.state.getEffectiveRole(voterId)];
+
+      // Mayor gets double vote
+      const voteWeight = role && role.id === 'mayor' ? 2 : 1;
+      counts[targetId] = (counts[targetId] || 0) + voteWeight;
     }
+
     const maxVotes = Math.max(...Object.values(counts));
     const candidates = Object.keys(counts).filter(id => counts[id] === maxVotes);
-    return candidates[Math.floor(Math.random() * candidates.length)];
+    const executed = candidates[Math.floor(Math.random() * candidates.length)];
+
+    this.state.executedToday = executed;
+    return executed;
   }
 
-  resolveNight(actions) {
-    const result = { killed: null, guarded: null, divineResult: null, divineTarget: null, mediumResult: null };
+  /**
+   * Handle execution and its side effects
+   */
+  handleExecution(playerId) {
+    const p = this.state.getPlayerById(playerId);
+    if (!p) return;
 
-    // Guard
-    if (actions.guard) {
-      result.guarded = actions.guard;
-      this.state.lastGuardTarget = actions.guard;
-    }
+    const roleId = this.state.getEffectiveRole(playerId);
+    const role = ROLES[roleId];
 
-    // Attack
-    if (actions.attack) {
-      if (actions.attack === result.guarded) {
-        result.killed = null; // Guard success
-      } else {
-        result.killed = actions.attack;
-        this.state.killPlayer(actions.attack);
+    // Black cat: random non-wolf dies
+    if (roleId === 'blackCat') {
+      const nonWolves = this.state.getAlive().filter(player =>
+        player.id !== playerId && !this.state.isWerewolf(player.id)
+      );
+      if (nonWolves.length > 0) {
+        const victim = nonWolves[Math.floor(Math.random() * nonWolves.length)];
+        this.state.killPlayer(victim.id, 'blackCat');
+        this.state.addLog('処刑', `黒猫の効果により${victim.name}が死亡しました`, null);
       }
     }
 
-    // Divine
-    if (actions.divine) {
-      result.divineTarget = actions.divine;
-      const target = this.state.getPlayerById(actions.divine);
-      result.divineResult = target && ROLES[target.role].appearAsWerewolf ? "werewolf" : "village";
-      this.state.divinedPlayers[actions.divine] = result.divineResult;
+    // Nekomata: random player dies
+    if (roleId === 'nekomata') {
+      const others = this.state.getAlive().filter(player => player.id !== playerId);
+      if (others.length > 0) {
+        const victim = others[Math.floor(Math.random() * others.length)];
+        this.state.killPlayer(victim.id, 'nekomata');
+        this.state.addLog('処刑', `猫又の効果により${victim.name}が死亡しました`, null);
+      }
     }
 
-    // Medium - check last executed player
+    // Straw doll: choose someone to die (would be handled by UI)
+
+    // Queen: all non-wolf, non-fox die
+    if (roleId === 'queen') {
+      const toKill = this.state.getAlive().filter(player =>
+        player.id !== playerId &&
+        !this.state.isWerewolf(player.id) &&
+        this.state.getEffectiveRole(player.id) !== 'fox'
+      );
+      toKill.forEach(victim => {
+        this.state.killPlayer(victim.id, 'queen');
+      });
+      if (toKill.length > 0) {
+        this.state.addLog('処刑', `女王の効果により${toKill.length}人が死亡しました`, null);
+      }
+    }
+
+    // Kill the executed player
+    this.state.killPlayer(playerId, 'execution');
+  }
+
+  /**
+   * Resolve all night actions in proper order
+   */
+  resolveNight(actions) {
+    const result = {
+      killed: [],
+      guarded: null,
+      trapped: null,
+      healed: [],
+      divineResult: null,
+      divineTarget: null,
+      sageResult: null,
+      sageTarget: null,
+      mediumResult: null,
+      events: []
+    };
+
+    // 1. Guard (knight)
+    if (actions.guard) {
+      result.guarded = actions.guard;
+      this.state.lastGuardTarget = actions.guard;
+      result.events.push({ type: 'guard', target: actions.guard });
+    }
+
+    // 2. Trap (trapper)
+    if (actions.trap) {
+      this.state.trapTarget = actions.trap;
+      result.trapped = actions.trap;
+      result.events.push({ type: 'trap', target: actions.trap });
+    }
+
+    // 3. Heal (doctor) - track consecutive healing
+    if (actions.heal) {
+      const lastDay = this.state.healTargets[actions.heal] || -2;
+      const day = this.state.day;
+
+      // Same person healed 2 nights in a row dies
+      if (lastDay === day - 1) {
+        this.state.killPlayer(actions.heal, 'overhealed');
+        result.events.push({ type: 'heal_death', target: actions.heal });
+      } else {
+        result.healed.push(actions.heal);
+        this.state.healTargets[actions.heal] = day;
+      }
+    }
+
+    // 4. Bless (priest - one time)
+    if (actions.bless && !this.state.priestUsed) {
+      this.state.priestUsed = true;
+      result.events.push({ type: 'bless', target: actions.bless });
+    }
+
+    // 5. Resolve attack with all interactions
+    if (actions.attack && actions.attack.length > 0) {
+      const attackResult = this.resolveAttack(actions.attack, result);
+      result.killed.push(...attackResult.killed);
+      result.events.push(...attackResult.events);
+    }
+
+    // 6. Divine (seer)
+    if (actions.divine) {
+      const target = this.state.getPlayerById(actions.divine);
+      if (target) {
+        result.divineTarget = actions.divine;
+        result.divineResult = this.state.appearsAsWerewolf(actions.divine) ? "werewolf" : "village";
+        this.state.divinedPlayers[actions.divine] = result.divineResult;
+
+        // Fox dies if divined
+        if (this.state.getEffectiveRole(actions.divine) === 'fox') {
+          this.state.foxAlive = false;
+          this.state.killPlayer(actions.divine, 'divined');
+          result.events.push({ type: 'fox_death', target: actions.divine });
+        }
+
+        result.events.push({ type: 'divine', target: actions.divine, result: result.divineResult });
+      }
+    }
+
+    // 7. Sage divine (exact role)
+    if (actions.sageDiv) {
+      const target = this.state.getPlayerById(actions.sageDiv);
+      if (target) {
+        result.sageTarget = actions.sageDiv;
+        result.sageResult = this.state.getEffectiveRole(actions.sageDiv);
+        result.events.push({ type: 'sageDiv', target: actions.sageDiv, result: result.sageResult });
+      }
+    }
+
+    // 8. Fake divine (always "not wolf")
+    if (actions.fakeDivine) {
+      result.events.push({ type: 'fakeDivine', target: actions.fakeDivine, result: "village" });
+    }
+
+    // 9. Weak divine (child fox - 50% accuracy)
+    if (actions.weakDivine) {
+      const accurate = Math.random() < 0.5;
+      const target = this.state.getPlayerById(actions.weakDivine);
+      let result_value = "village";
+      if (accurate && target && this.state.appearsAsWerewolf(actions.weakDivine)) {
+        result_value = "werewolf";
+      }
+      result.events.push({ type: 'weakDivine', target: actions.weakDivine, result: result_value, accurate });
+    }
+
+    // 10. Sorcery (exact role)
+    if (actions.sorcery) {
+      const target = this.state.getPlayerById(actions.sorcery);
+      if (target) {
+        result.events.push({ type: 'sorcery', target: actions.sorcery, result: this.state.getEffectiveRole(actions.sorcery) });
+      }
+    }
+
+    // 11. Frame (wolf boy)
+    if (actions.frame) {
+      this.state.framed[actions.frame] = true;
+      result.events.push({ type: 'frame', target: actions.frame });
+    }
+
+    // 12. Witch potions
+    if (actions.witchRevive && this.state.witchPotions.revive && result.killed.length > 0) {
+      const targetId = actions.witchRevive;
+      this.state.witchPotions.revive = false;
+      if (result.killed.includes(targetId)) {
+        this.state.revivePlayer(targetId);
+        result.events.push({ type: 'witch_revive', target: targetId });
+      }
+    }
+
+    if (actions.witchPoison && this.state.witchPotions.poison && this.state.day >= 2) {
+      const targetId = actions.witchPoison;
+      this.state.witchPotions.poison = false;
+      this.state.killPlayer(targetId, 'witch_poison');
+      result.events.push({ type: 'witch_poison', target: targetId });
+    }
+
+    // 13. Flee (fugitive)
+    if (actions.flee) {
+      const target = this.state.getPlayerById(actions.flee);
+      if (target && this.state.isWerewolf(actions.flee)) {
+        // Died fleeing to wolf
+        this.state.killPlayer(actions.flee, 'flee');
+        result.events.push({ type: 'flee_death', target: actions.flee });
+      }
+    }
+
+    // 14. Gift (santa) - handled separately, just log
+    if (actions.gift) {
+      result.events.push({ type: 'gift', target: actions.gift });
+    }
+
+    // 15. Medium check
     if (this.state.executedToday) {
       const executed = this.state.getPlayerById(this.state.executedToday);
       if (executed) {
-        const medResult = ROLES[executed.role].appearAsWerewolf ? "werewolf" : "village";
-        result.mediumResult = { playerId: this.state.executedToday, name: executed.name, result: medResult };
+        const medResult = this.state.appearsAsWerewolf(this.state.executedToday) ? "werewolf" : "village";
+        result.mediumResult = {
+          playerId: this.state.executedToday,
+          name: executed.name,
+          result: medResult
+        };
         this.state.mediumResults.push(result.mediumResult);
+        result.events.push({ type: 'medium', target: this.state.executedToday, result: medResult });
       }
     }
 
     return result;
   }
 
+  /**
+   * Resolve werewolf attack with all interactions
+   */
+  resolveAttack(attackTargets, result) {
+    const killed = [];
+    const events = [];
+
+    for (const targetId of attackTargets) {
+      const target = this.state.getPlayerById(targetId);
+      if (!target || !target.isAlive) continue;
+
+      // Guard blocks attack
+      if (targetId === result.guarded) {
+        events.push({ type: 'guard_success', target: targetId });
+        continue;
+      }
+
+      // Trap kills attacking wolf
+      if (targetId === this.state.trapTarget) {
+        // Kill the attacking wolves instead
+        // This would need to be handled differently - for now mark trap activated
+        events.push({ type: 'trap_triggered', target: targetId });
+        continue;
+      }
+
+      // Elder survives first attack
+      if (this.state.getEffectiveRole(targetId) === 'elder' && !this.state.elderUsedLife) {
+        this.state.elderUsedLife = true;
+        events.push({ type: 'elder_survives', target: targetId });
+        continue;
+      }
+
+      // Red hood enters suspended animation
+      if (this.state.getEffectiveRole(targetId) === 'redHood') {
+        this.state.suspendedPlayers.push(targetId);
+        events.push({ type: 'redHood_suspended', target: targetId });
+        continue;
+      }
+
+      // Cursed becomes wolf
+      if (this.state.getEffectiveRole(targetId) === 'cursed') {
+        this.state.convertToWerewolf(targetId);
+        events.push({ type: 'cursed_convert', target: targetId });
+        continue;
+      }
+
+      // Fox is immune
+      if (this.state.getEffectiveRole(targetId) === 'fox') {
+        events.push({ type: 'fox_immune', target: targetId });
+        continue;
+      }
+
+      // Zombie converts instead of killing
+      if (this.state.zombieIds.length > 0) {
+        this.state.convertToZombie(targetId);
+        events.push({ type: 'zombie_convert', target: targetId });
+        continue;
+      }
+
+      // Wolf killer kills back
+      if (this.state.getEffectiveRole(targetId) === 'wolfKiller') {
+        events.push({ type: 'wolfKiller_retaliate', target: targetId });
+        // Attacking wolves would die - handled elsewhere
+      }
+
+      // Sick prevents next night wolf action
+      if (this.state.getEffectiveRole(targetId) === 'sick') {
+        this.state.sickWolves.push(targetId);
+        events.push({ type: 'sick_effect', target: targetId });
+      }
+
+      // Slave dies instead of noble
+      if (this.state.getEffectiveRole(targetId) === 'noble') {
+        const slave = this.state.players.find(s =>
+          s.isAlive && this.state.getEffectiveRole(s.id) === 'slave'
+        );
+        if (slave) {
+          this.state.killPlayer(slave.id, 'slave_protection');
+          events.push({ type: 'noble_protected', target: targetId, actualVictim: slave.id });
+          continue;
+        }
+      }
+
+      // Standard kill
+      this.state.killPlayer(targetId, 'attack');
+      killed.push(targetId);
+      events.push({ type: 'killed', target: targetId });
+
+      // Nekomata kills random wolf on death
+      if (this.state.getEffectiveRole(targetId) === 'nekomata') {
+        const wolves = this.state.getAliveWerewolves();
+        if (wolves.length > 0) {
+          const wolf = wolves[Math.floor(Math.random() * wolves.length)];
+          this.state.killPlayer(wolf.id, 'nekomata_retaliate');
+          events.push({ type: 'nekomata_kill', target: wolf.id });
+        }
+      }
+    }
+
+    return { killed, events };
+  }
+
+  /**
+   * Get AI night action
+   */
   async getAiNightAction(player) {
     const alive = this.state.getAlive().filter(p => p.id !== player.id);
     return await this.ai.getNightAction(player, alive, this.state);
   }
 
+  /**
+   * Get AI statement
+   */
   async getAiStatement(player) {
     return await this.ai.getStatement(player, this.state);
   }

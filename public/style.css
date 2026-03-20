@@ -343,6 +343,212 @@ body {
 }
 .resume-actions { display: flex; gap: 8px; }
 
+/* ===== Role Configuration ===== */
+#screen-lobby { justify-content: flex-start; overflow-y: auto; padding-top: 20px; }
+.lobby-container { max-width: 640px; margin: 0 auto; max-height: 90vh; overflow-y: auto; }
+
+.role-config-container {
+  margin-bottom: 24px;
+}
+
+.role-config-presets {
+  display: flex; gap: 8px; margin-bottom: 16px;
+}
+
+.preset-btn {
+  flex: 1;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.preset-btn:hover {
+  background: var(--surface3);
+  border-color: var(--accent);
+}
+
+.preset-btn.active {
+  background: var(--accent);
+  border-color: var(--accent2);
+  color: #fff;
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.role-selector {
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+.role-section {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  overflow: hidden;
+}
+
+.team-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold);
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.05em;
+}
+
+.role-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+}
+
+.role-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  user-select: none;
+}
+
+.role-card:hover {
+  border-color: var(--accent);
+  background: var(--surface3);
+}
+
+.role-card.active {
+  border-color: var(--accent);
+  background: rgba(204, 17, 68, 0.1);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.role-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.role-card.disabled:hover {
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+.role-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.role-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.role-count {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 2px;
+  font-weight: 700;
+}
+
+.role-controls {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  justify-content: center;
+}
+
+.role-control-btn {
+  padding: 2px 4px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  transition: all 0.15s;
+}
+
+.role-control-btn:hover {
+  background: var(--surface3);
+  border-color: var(--accent);
+}
+
+.role-control-btn:active {
+  transform: scale(0.95);
+}
+
+.composition-summary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-top: 16px;
+  font-size: 12px;
+}
+
+.composition-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.composition-total-text {
+  color: var(--text2);
+}
+
+.composition-total-count {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.composition-total-count.valid {
+  color: var(--success);
+}
+
+.composition-total-count.invalid {
+  color: var(--danger);
+}
+
+.composition-warning {
+  color: var(--danger);
+  font-size: 11px;
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(255, 30, 30, 0.08);
+  border: 1px solid rgba(255, 50, 50, 0.3);
+  border-radius: 4px;
+  display: none;
+}
+
+.composition-warning.show {
+  display: block;
+}
+
+/* Team color classes */
+.team-village { color: #8bc34a; }
+.team-werewolf { color: #ef5350; }
+.team-fox { color: #ff6f00; }
+.team-lover { color: #e91e63; }
+.team-zombie { color: #558b2f; }
+.team-other { color: #9e9e9e; }
+
 /* ===== Scrollbar ===== */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }

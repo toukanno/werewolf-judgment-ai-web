@@ -1,4 +1,8 @@
-// OpenRouter API連携
+/**
+ * OpenRouter API Integration
+ * Handles API communication for AI player statements and decisions
+ */
+
 class OpenRouterAI {
   constructor(apiKey) {
     this.apiKey = apiKey;
@@ -6,30 +10,74 @@ class OpenRouterAI {
     this.baseUrl = "https://openrouter.ai/api/v1/chat/completions";
   }
 
-  async _request(messages) {
-    const res = await fetch(this.baseUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${this.apiKey}`,
-        "HTTP-Referer": location.origin,
-        "X-Title": "Werewolf Judgment AI"
-      },
-      body: JSON.stringify({ model: this.model, messages, temperature: 0.8, max_tokens: 300 })
-    });
-    if (!res.ok) throw new Error(`API error: ${res.status}`);
-    const data = await res.json();
-    return data.choices[0].message.content;
+  /**
+   * Test API key connection
+   */
+  static async testConnection(apiKey) {
+    try {
+      const res = await fetch("https://openrouter.ai/api/v1/models", {
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "HTTP-Referer": location.origin,
+          "X-Title": "Werewolf Judgment AI"
+        }
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
   }
 
+  /**
+   * Internal API request
+   */
+  async _request(messages) {
+    try {
+      const res = await fetch(this.baseUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${this.apiKey}`,
+          "HTTP-Referer": location.origin,
+          "X-Title": "Werewolf Judgment AI"
+        },
+        body: JSON.stringify({
+          model: this.model,
+          messages,
+          temperature: 0.8,
+          max_tokens: 300
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      return data.choices[0].message.content;
+    } catch (error) {
+      console.error("OpenRouter API error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Build prompt for AI player
+   */
   _buildPrompt(player, state, task) {
     const alive = state.getAlive().map(p => p.name).join("、");
-    const recentLog = state.log.slice(-20).map(l => `${l.sender || "システム"}: ${l.content}`).join("\n");
+    const recentLog = state.log.slice(-20).map(l => {
+      const sender = l.sender || "システム";
+      return `${sender}: ${l.content}`;
+    }).join("\n");
 
-    return `あなたは人狼ゲームのプレイヤーです。
+    const role = ROLES[player.role];
+    const roleInfo = role ? `${role.name} (${role.team})` : player.role;
+
+    let roleContext = `あなたは人狼ゲームのプレイヤーです。
 名前: ${player.name}
-役職: ${ROLES[player.role].name}
-性格: ${player.personality}
+役職: ${roleInfo}
+性格: ${player.personality || "中立的"}
 生存者: ${alive}
 
 最近の議論:
@@ -37,56 +85,136 @@ ${recentLog || "(まだ発言はありません)"}
 
 タスク: ${task}
 
-JSONで応答してください: {"action": "...", "target": "...", "statement": "..."}`;
+JSON形式で応答してください: {"statement": "...", "reasoning": "..."}`;
+
+    // Add role-specific context
+    if (player.role === "werewolf" || player.role === "madman") {
+      const wolves = state.getAliveWerewolves().map(p => p.name).join("、");
+      roleContext = `あなたは人狼ゲームのプレイヤーです。
+名前: ${player.name}
+役職: ${roleInfo}
+性格: ${player.personality || "中立的"}
+人狼仲間: ${wolves}
+生存者: ${alive}
+
+最近の議論:
+${recentLog || "(まだ発言はありません)"}
+
+タスク: ${task}
+
+JSON形式で応答してください: {"statement": "...", "reasoning": "..."}`;
+    }
+
+    if (player.role === "seer") {
+      const divined = Object.entries(state.divinedPlayers).map(([id, result]) => {
+        const p = state.getPlayerById(id);
+        return `${p?.name}: ${result === "werewolf" ? "人狼" : "村人"}`;
+      }).join("、");
+
+      roleContext = `あなたは人狼ゲームのプレイヤーです。
+名前: ${player.name}
+役職: ${roleInfo}
+性格: ${player.personality || "中立的"}
+占い結果: ${divined || "(なし)"}
+生存者: ${alive}
+
+最近の議論:
+${recentLog || "(まだ発言はありません)"}
+
+タスク: ${task}
+
+JSON形式で応答してください: {"statement": "...", "reasoning": "..."}`;
+    }
+
+    return roleContext;
   }
 
+  /**
+   * Get AI statement for day phase
+   */
   async getStatement(player, state) {
     try {
-      const prompt = this._buildPrompt(player, state, "議論で発言してください。statement に発言内容を入れてください。");
+      const prompt = this._buildPrompt(
+        player,
+        state,
+        "昼間の議論で自然な発言をしてください。statement に発言内容を入れてください。"
+      );
+
       const raw = await this._request([{ role: "user", content: prompt }]);
       const parsed = JSON.parse(raw);
       return parsed.statement || raw;
-    } catch {
+    } catch (error) {
+      console.error("OpenRouter getStatement error:", error);
       const mock = new MockAI();
       return mock.getStatement(player, state);
     }
   }
 
+  /**
+   * Get AI vote
+   */
   async getVote(player, targets, state) {
     try {
-      const targetNames = targets.map(t => t.name).join("、");
-      const prompt = this._buildPrompt(player, state, `投票してください。対象: ${targetNames}。target に投票先の名前を入れてください。`);
+      const targetList = targets.map(t => t.name).join("、");
+      const prompt = this._buildPrompt(
+        player,
+        state,
+        `投票する相手を決めてください。投票対象: ${targetList}。JSON形式で {"target": "対象者の名前", "reasoning": "理由"} として応答してください。`
+      );
+
       const raw = await this._request([{ role: "user", content: prompt }]);
       const parsed = JSON.parse(raw);
-      const target = targets.find(t => t.name === parsed.target);
-      return target ? target.id : targets[0].id;
-    } catch {
+
+      if (parsed.target) {
+        const target = targets.find(t => t.name === parsed.target);
+        return target ? target.id : targets[0].id;
+      }
+      return targets[0].id;
+    } catch (error) {
+      console.error("OpenRouter getVote error:", error);
       const mock = new MockAI();
       return mock.getVote(player, targets, state);
     }
   }
 
-  async getNightAction(player, targets, state) {
+  /**
+   * Get AI night action
+   */
+  async getNightAction(player, state) {
     try {
-      const ability = ROLES[player.role].ability;
-      const targetNames = targets.map(t => t.name).join("、");
-      const prompt = this._buildPrompt(player, state, `夜の行動（${ability}）を行ってください。対象: ${targetNames}。target に対象の名前を入れてください。`);
+      const role = ROLES[player.role];
+      if (!role || !role.nightAction) return null;
+
+      const alive = state.getAlive().filter(p => p.id !== player.id);
+      const targetList = alive.map(p => p.name).join("、");
+      const ability = role.ability;
+
+      let actionName = "";
+      if (ability === "divine") actionName = "占い";
+      else if (ability === "guard") actionName = "護衛";
+      else if (ability === "attack") actionName = "襲撃";
+      else if (ability === "heal") actionName = "治癒";
+      else if (ability === "poison") actionName = "毒殺";
+      else actionName = role.name;
+
+      const prompt = this._buildPrompt(
+        player,
+        state,
+        `夜間に${actionName}する対象を選んでください。候補: ${targetList}。JSON形式で {"target": "対象者の名前", "reasoning": "理由"} として応答してください。`
+      );
+
       const raw = await this._request([{ role: "user", content: prompt }]);
       const parsed = JSON.parse(raw);
-      const target = targets.find(t => t.name === parsed.target);
-      return target ? target.id : targets[0].id;
-    } catch {
-      const mock = new MockAI();
-      return mock.getNightAction(player, targets, state);
-    }
-  }
 
-  static async testConnection(apiKey) {
-    try {
-      const res = await fetch("https://openrouter.ai/api/v1/models", {
-        headers: { "Authorization": `Bearer ${apiKey}` }
-      });
-      return res.ok;
-    } catch { return false; }
+      if (parsed.target) {
+        const target = alive.find(p => p.name === parsed.target);
+        return target ? target.id : alive[0].id;
+      }
+      return alive[0].id;
+    } catch (error) {
+      console.error("OpenRouter getNightAction error:", error);
+      const mock = new MockAI();
+      return mock.getNightAction(player, state);
+    }
   }
 }
