@@ -36,10 +36,10 @@
   <!-- ===== ロビー画面 ===== -->
   <section id="screen-lobby" class="screen">
     <div class="lobby-container">
-      <h2>⚙ ゲーム設定</h2>
+      <h2>役職・ルール設定</h2>
 
       <div class="lobby-section">
-        <h3>参加人数</h3>
+        <h3>参加人数 / 陣営構成</h3>
         <div class="player-count-selector">
           <button class="btn btn-count active" data-count="5" onclick="selectPlayerCount(5)">5人</button>
           <button class="btn btn-count" data-count="6" onclick="selectPlayerCount(6)">6人</button>
@@ -71,17 +71,17 @@
       </div>
 
       <div class="lobby-section">
-        <h3>役職設定</h3>
+        <h3>役職一覧</h3>
         <div id="role-config" class="role-config"></div>
       </div>
 
       <div class="lobby-section">
-        <h3>あなたの名前</h3>
+        <h3>プレイヤー名</h3>
         <input type="text" id="player-name" class="input" placeholder="名前を入力" value="プレイヤー">
       </div>
 
       <div class="lobby-section">
-        <h3>🔑 AI設定（オプション）</h3>
+        <h3>AI設定（オプション）</h3>
         <p class="hint">APIキーを設定しなくても遊べます（プログラムAIが動作します）。<br>より高度なAI発言が欲しい場合は <a href="guide.html" class="guide-link">AI設定ガイド</a> を参照してください。</p>
         <input type="password" id="api-key" class="input" placeholder="APIキーを入力（任意）">
         <div class="api-key-actions">
@@ -93,7 +93,7 @@
 
       <div class="lobby-actions">
         <button class="btn" onclick="showScreen('title')">戻る</button>
-        <button class="btn btn-primary" onclick="startGame()">開始</button>
+        <button class="btn btn-primary" onclick="startGame()">入室</button>
       </div>
     </div>
   </section>
