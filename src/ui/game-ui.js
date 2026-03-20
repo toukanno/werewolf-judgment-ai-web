@@ -126,28 +126,39 @@ const GameUI = {
   },
 
   /**
-   * Show text input for day discussion
+   * Show persistent discussion input with "proceed" button.
+   * onMessage is called each time the player sends a message (does NOT close input).
+   * onProceed is called when the player clicks the proceed button.
    */
-  showChatInput(onSend) {
+  showDiscussionInput(onMessage, onProceed, proceedLabel = '⚔ 投票に進む ▶') {
     const html = `
-      <div class="chat-input-container">
-        <button id="co-btn" class="btn co-btn">CO</button>
-        <input type="text" id="chat-input" class="chat-input" placeholder="発言を入力...">
-        <button id="chat-send-btn" class="btn btn-primary">発言</button>
-      </div>
-      <div id="co-popup" class="co-popup" style="display:none;">
-        <div class="co-popup-title">役職カミングアウト</div>
-        <div class="co-popup-grid">
-          <button class="co-role-btn" data-co="占い師">🔮 占い師</button>
-          <button class="co-role-btn" data-co="霊能者">👁 霊能者</button>
-          <button class="co-role-btn" data-co="狩人">🛡 狩人</button>
-          <button class="co-role-btn" data-co="市民">👤 市民</button>
-          <button class="co-role-btn" data-co="騎士">🛡 騎士</button>
-          <button class="co-role-btn" data-co="パン屋">🍞 パン屋</button>
-          <button class="co-role-btn" data-co="狂人">🃏 狂人</button>
-          <button class="co-role-btn" data-co="人狼">🐺 人狼</button>
+      <div id="discussion-ui" style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:0 2px;">
+          <span style="font-size:11px;color:var(--text2);">議論時間</span>
+          <span id="discussion-timer" style="font-size:13px;font-weight:700;color:var(--success);font-variant-numeric:tabular-nums;">120秒</span>
         </div>
-        <button id="co-cancel" class="btn btn-sm co-cancel">キャンセル</button>
+        <div class="chat-input-container">
+          <button id="co-btn" class="btn co-btn">CO</button>
+          <input type="text" id="chat-input" class="chat-input" placeholder="発言を入力...">
+          <button id="chat-send-btn" class="btn btn-primary">発言</button>
+        </div>
+        <div id="co-popup" class="co-popup" style="display:none;">
+          <div class="co-popup-title">役職カミングアウト</div>
+          <div class="co-popup-grid">
+            <button class="co-role-btn" data-co="占い師">🔮 占い師</button>
+            <button class="co-role-btn" data-co="霊能者">👁 霊能者</button>
+            <button class="co-role-btn" data-co="狩人">🛡 狩人</button>
+            <button class="co-role-btn" data-co="市民">👤 市民</button>
+            <button class="co-role-btn" data-co="騎士">🛡 騎士</button>
+            <button class="co-role-btn" data-co="パン屋">🍞 パン屋</button>
+            <button class="co-role-btn" data-co="狂人">🃏 狂人</button>
+            <button class="co-role-btn" data-co="人狼">🐺 人狼</button>
+          </div>
+          <button id="co-cancel" class="btn btn-sm co-cancel">キャンセル</button>
+        </div>
+        <button id="proceed-btn" class="btn btn-ghost" style="width:100%;padding:10px;font-size:14px;font-weight:700;border-color:var(--gold);color:var(--gold);">
+          ${this.escapeHtml(proceedLabel)}
+        </button>
       </div>
     `;
 
@@ -158,14 +169,43 @@ const GameUI = {
     const coBtn = document.getElementById('co-btn');
     const coPopup = document.getElementById('co-popup');
     const coCancel = document.getElementById('co-cancel');
+    const proceedBtn = document.getElementById('proceed-btn');
+    const timerEl = document.getElementById('discussion-timer');
 
     if (!input || !sendBtn) return;
 
+    // 120-second countdown — visual only, does NOT auto-advance
+    let timeLeft = 120;
+    const timerInterval = setInterval(() => {
+      timeLeft--;
+      if (timerEl) {
+        if (timeLeft > 60) {
+          timerEl.style.color = 'var(--success)';
+          timerEl.textContent = `${timeLeft}秒`;
+        } else if (timeLeft > 30) {
+          timerEl.style.color = 'var(--gold)';
+          timerEl.textContent = `${timeLeft}秒`;
+        } else if (timeLeft > 0) {
+          timerEl.style.color = 'var(--danger)';
+          timerEl.textContent = `${timeLeft}秒`;
+        } else {
+          clearInterval(timerInterval);
+          timerEl.style.color = 'var(--danger)';
+          timerEl.textContent = '時間切れ（投票に進んでください）';
+        }
+      }
+    }, 1000);
+
+    const proceed = () => {
+      clearInterval(timerInterval);
+      onProceed();
+    };
+
     const send = () => {
       const text = input.value.trim();
-      if (text) {
-        onSend(text);
+      if (text && !sendBtn.disabled) {
         input.value = '';
+        onMessage(text);
       }
     };
 
@@ -174,28 +214,51 @@ const GameUI = {
       if (e.key === 'Enter') send();
     });
 
-    // CO button
     if (coBtn && coPopup) {
       coBtn.addEventListener('click', () => {
         coPopup.style.display = coPopup.style.display === 'none' ? 'block' : 'none';
       });
     }
     if (coCancel) {
-      coCancel.addEventListener('click', () => {
-        coPopup.style.display = 'none';
-      });
+      coCancel.addEventListener('click', () => { coPopup.style.display = 'none'; });
     }
-
-    // CO role buttons
     document.querySelectorAll('.co-role-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const roleName = btn.dataset.co;
-        onSend(`【${roleName}CO】${roleName}です！`);
+        onMessage(`【${roleName}CO】${roleName}です！`);
         coPopup.style.display = 'none';
       });
     });
 
+    if (proceedBtn) {
+      proceedBtn.addEventListener('click', () => {
+        if (!proceedBtn.disabled) proceed();
+      });
+    }
+
     input.focus();
+  },
+
+  /**
+   * Lock/unlock the discussion send button and proceed button during AI reactions
+   */
+  setDiscussionSendLocked(locked) {
+    const sendBtn = document.getElementById('chat-send-btn');
+    const input = document.getElementById('chat-input');
+    const proceedBtn = document.getElementById('proceed-btn');
+    if (sendBtn) {
+      sendBtn.disabled = locked;
+      sendBtn.textContent = locked ? '…' : '発言';
+    }
+    if (input) input.disabled = locked;
+    if (proceedBtn) proceedBtn.disabled = locked;
+  },
+
+  /**
+   * Show text input for day discussion (legacy single-send, kept for compatibility)
+   */
+  showChatInput(onSend) {
+    this.showDiscussionInput(onSend, () => {}, '発言完了');
   },
 
   /**
@@ -467,17 +530,15 @@ const GameUI = {
         <div class="winners-grid">
           ${winnersList}
         </div>
-        <button id="restart-btn" class="btn btn-primary btn-large">もう一度プレイ</button>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
+          <button class="btn btn-primary btn-large" onclick="showScreen('lobby')">もう一度プレイ</button>
+          <button class="btn btn-ghost" onclick="showScreen('title')">タイトルへ戻る</button>
+        </div>
       </div>
     `;
 
     screen.innerHTML = resultHtml;
     showScreen('result');
-
-    const restartBtn = document.getElementById('restart-btn');
-    if (restartBtn && window._gameRestartCallback) {
-      restartBtn.addEventListener('click', window._gameRestartCallback);
-    }
   },
 
   /**

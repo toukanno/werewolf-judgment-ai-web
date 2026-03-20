@@ -198,51 +198,54 @@ async function runDayPhase() {
     gameState.suspendedPlayers = [];
   }
 
-  // AI statements
+  // AI statements — 3-5 second intervals so conversation feels natural
   const alive = gameState.getAlive();
   for (const player of alive) {
     if (player.isHuman) continue;
+    await sleep(3000 + Math.random() * 2000);
     const statement = await gameLogic.getAiStatement(player);
     GameUI.addMessage(statement, null, "ai", player);
     gameState.addLog("statement", statement, player.name);
-    await sleep(300);
   }
 
-  // Human input
-  let humanText = "";
+  // Human discussion — persistent input until player clicks proceed button
+  const isDay1 = gameState.day === 1;
+  const proceedLabel = isDay1 ? "🌙 夜へ進む" : "⚔ 投票に進む";
+
   if (human.isAlive) {
     await new Promise(resolve => {
-      GameUI.showChatInput((text) => {
-        humanText = text;
-        GameUI.addMessage(text, null, "you", human);
-        gameState.addLog("statement", text, human.name);
+      GameUI.showDiscussionInput(
+        async (text) => {
+          GameUI.addMessage(text, null, "you", human);
+          gameState.addLog("statement", text, human.name);
 
-        // Check if talkative wolf used word
-        if (human.role === "talkativeWolf" && gameState.talkativeWolfWord) {
-          if (text.includes(gameState.talkativeWolfWord)) {
-            GameUI.addMessage(`🎯 禁句「${gameState.talkativeWolfWord}」を言ってしまった！`, null, "danger");
-            gameState.talkativeWolfWord = null;
+          // Check if talkative wolf used word
+          if (human.role === "talkativeWolf" && gameState.talkativeWolfWord) {
+            if (text.includes(gameState.talkativeWolfWord)) {
+              GameUI.addMessage(`🎯 禁句「${gameState.talkativeWolfWord}」を言ってしまった！`, null, "danger");
+              gameState.talkativeWolfWord = null;
+            }
           }
-        }
 
-        resolve();
-      });
+          // AI reactions — lock UI while reacting
+          GameUI.setDiscussionSendLocked(true);
+          const aliveAI = gameState.getAlive().filter(p => !p.isHuman);
+          const reactorCount = Math.min(2, aliveAI.length);
+          const reactors = aliveAI.sort(() => Math.random() - 0.5).slice(0, reactorCount);
+          for (const reactor of reactors) {
+            await sleep(1500 + Math.random() * 1500);
+            const reaction = await gameLogic.getAiReaction(reactor, text);
+            if (reaction) {
+              GameUI.addMessage(reaction, null, "ai", reactor);
+              gameState.addLog("statement", reaction, reactor.name);
+            }
+          }
+          GameUI.setDiscussionSendLocked(false);
+        },
+        resolve,
+        proceedLabel
+      );
     });
-
-    // AI reactions to human's message (1-2 AIs respond after 2-3 seconds)
-    if (humanText) {
-      const aliveAI = gameState.getAlive().filter(p => !p.isHuman);
-      const reactorCount = Math.min(2, aliveAI.length);
-      const reactors = aliveAI.sort(() => Math.random() - 0.5).slice(0, reactorCount);
-      for (const reactor of reactors) {
-        await sleep(1500 + Math.random() * 1500);
-        const reaction = await gameLogic.getAiReaction(reactor, humanText);
-        if (reaction) {
-          GameUI.addMessage(reaction, null, "ai", reactor);
-          gameState.addLog("statement", reaction, reactor.name);
-        }
-      }
-    }
   } else {
     GameUI.addMessage("（あなたは死亡しています。観戦中…）", null, "system");
     await new Promise(resolve => {
@@ -251,7 +254,7 @@ async function runDayPhase() {
   }
 
   // Day 1: no execution, proceed to night
-  if (gameState.day === 1) {
+  if (isDay1) {
     GameUI.addMessage("1日目の議論が終了。夜になります…", null, "system");
     gameState.save();
     GameUI.showContinueButton("🌙 夜へ進む", () => runNightPhase());
