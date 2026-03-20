@@ -18,7 +18,7 @@ const GameUI = {
     header.innerHTML = `
       <div class="header-content">
         <h2>${phaseEmoji} ${state.day}日目 ${phaseText}フェーズ</h2>
-        <p class="phase-info">プレイヤー数: ${state.getAlivePlayers().length}/${state.players.length}</p>
+        <p class="phase-info">プレイヤー数: ${state.getAlive().length}/${state.players.length}</p>
       </div>
     `;
   },
@@ -31,7 +31,7 @@ const GameUI = {
     if (!container) return;
 
     const players = state.players;
-    const alivePlayers = state.getAlivePlayers();
+    const alivePlayers = state.getAlive();
 
     let html = '<div class="player-chips">';
 
@@ -238,7 +238,7 @@ const GameUI = {
       <h3>${this.escapeHtml(role.name)}の昼間能力を使用</h3>
       <div class="day-action-buttons">`;
 
-    const targets = state.getAlivePlayers().filter(p => p.id !== player.id);
+    const targets = state.getAlive().filter(p => p.id !== player.id);
 
     if (role.id === 'assassin') {
       html += '<p class="action-description">処刑の投票を1票追加できます</p>';
