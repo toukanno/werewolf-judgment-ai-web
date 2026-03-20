@@ -1673,8 +1673,7 @@ const DEFAULT_PRESETS = {
     composition: {
       villager: 2,
       seer: 1,
-      werewolf: 1,
-      madman: 1
+      werewolf: 2
     }
   },
 
@@ -1695,8 +1694,7 @@ const DEFAULT_PRESETS = {
       villager: 3,
       seer: 1,
       knight: 1,
-      werewolf: 1,
-      madman: 1
+      werewolf: 2
     }
   },
 
@@ -1719,8 +1717,7 @@ const DEFAULT_PRESETS = {
       seer: 1,
       knight: 1,
       medium: 1,
-      werewolf: 2,
-      madman: 1
+      werewolf: 3
     }
   },
 
@@ -1782,7 +1779,7 @@ const DEFAULT_PRESETS = {
   14: {
     name: '14人村',
     composition: {
-      villager: 4,
+      villager: 3,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -1799,7 +1796,7 @@ const DEFAULT_PRESETS = {
   15: {
     name: '15人村',
     composition: {
-      villager: 4,
+      villager: 3,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -1817,7 +1814,7 @@ const DEFAULT_PRESETS = {
   16: {
     name: '16人村',
     composition: {
-      villager: 4,
+      villager: 2,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -1837,7 +1834,7 @@ const DEFAULT_PRESETS = {
   17: {
     name: '17人村',
     composition: {
-      villager: 5,
+      villager: 2,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -1858,7 +1855,7 @@ const DEFAULT_PRESETS = {
   18: {
     name: '18人村',
     composition: {
-      villager: 5,
+      villager: 2,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -1880,7 +1877,7 @@ const DEFAULT_PRESETS = {
   19: {
     name: '19人村',
     composition: {
-      villager: 5,
+      villager: 2,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -1909,18 +1906,12 @@ const DEFAULT_PRESETS = {
       medium: 1,
       sage: 1,
       doctor: 1,
-      witch: 1,
-      assassin: 1,
       trapper: 1,
-      mayor: 1,
-      detective: 1,
-      paladin: 1,
-      werewolf: 3,
-      wiseWolf: 1,
-      bigWolf: 1,
+      werewolf: 5,
+      madman: 1,
       fox: 1,
       immoralist: 1,
-      madman: 1
+      nekomata: 1
     }
   }
 };
@@ -2032,15 +2023,15 @@ function validateComposition(composition) {
 }
 
 // Exported globals:
-// TEAMS, TEAM_INFO, ROLES, ROLE_CATEGORIES, DEFAULT_PRESETS
+// TEAMS, TEAM_INFO, ROLES, ROLE_CATEGORIES, DEFAULT_PRESETS, COMPOSITIONS
 // getTeamLabel, getCompositionText, getRolesByTeam, getRolesByCategory, getTotalRoleCount, validateComposition
 const _rolesExport = {
   TEAMS,
   TEAM_INFO,
   ROLES,
   ROLE_CATEGORIES,
-  COMPOSITIONS,
   DEFAULT_PRESETS,
+  COMPOSITIONS,
   getTeamLabel,
   getCompositionText,
   getRolesByTeam,

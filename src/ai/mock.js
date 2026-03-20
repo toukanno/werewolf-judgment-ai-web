@@ -256,27 +256,27 @@ class MockAI {
   async getVote(player, targets, state) {
     await new Promise(r => setTimeout(r, 200 + Math.random() * 400));
 
+    if (!targets || targets.length === 0) return null;
+
     const role = player.role;
     const roleData = ROLES[role];
     const team = roleData ? roleData.team : "village";
 
-    if (role === "werewolf" || role === "bigWolf" || role === "talkativeWolf" ||
-        role === "greedyWolf" || role === "wiseWolf" || role === "reviveWolf" || role === "ableWolf") {
-      const villagers = targets.filter(t => {
+    if (team === "werewolf") {
+      // Wolves vote to eliminate non-wolves
+      const nonWolves = targets.filter(t => {
         const r = ROLES[t.role];
         return r && r.team !== "werewolf";
       });
-      if (villagers.length > 0) return this._pick(villagers).id;
+      if (nonWolves.length > 0) return this._pick(nonWolves).id;
     } else if (role === "madman" || role === "fanatic" || role === "whisperMad" ||
                role === "blackCat" || role === "sorcerer" || role === "wolfBoy") {
+      // Wolf-aligned village roles vote to eliminate village
       const villagers = targets.filter(t => {
         const r = ROLES[t.role];
         return r && r.team === "village";
       });
       if (villagers.length > 0) return this._pick(villagers).id;
-    } else if (role === "fox" || role === "childFox" || role === "immoralist") {
-      // Fox votes to maintain balance
-      return this._pick(targets).id;
     }
     return this._pick(targets).id;
   }
@@ -289,6 +289,9 @@ class MockAI {
     if (!roleData || !roleData.nightAction) return null;
 
     const ability = roleData.ability;
+
+    // Medium has no night choice — result is automatic from executedToday
+    if (ability === "mediumDive") return null;
 
     if (ability === "attack") {
       const villagers = targets.filter(t => {

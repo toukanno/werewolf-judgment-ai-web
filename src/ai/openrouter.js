@@ -88,13 +88,13 @@ ${recentLog || "(まだ発言はありません)"}
 JSON形式で応答してください: {"statement": "...", "reasoning": "..."}`;
 
     // Add role-specific context
-    if (player.role === "werewolf" || player.role === "madman") {
-      const wolves = state.getAliveWerewolves().map(p => p.name).join("、");
+    if (player.role === "werewolf" || ROLES[player.role]?.team === "werewolf") {
+      const allies = state.getAliveWerewolves().filter(p => p.id !== player.id).map(p => p.name).join("、");
       roleContext = `あなたは人狼ゲームのプレイヤーです。
 名前: ${player.name}
 役職: ${roleInfo}
 性格: ${player.personality || "中立的"}
-人狼仲間: ${wolves}
+人狼仲間: ${allies || "(なし)"}
 生存者: ${alive}
 
 最近の議論:
@@ -187,7 +187,7 @@ JSON形式で応答してください: {"statement": "...", "reasoning": "..."}`
 
       const availableTargets = Array.isArray(targets)
         ? targets
-        : state.getAlive().filter(p => p.id !== player.id);
+        : (state ? state.getAlive().filter(p => p.id !== player.id) : []);
       if (availableTargets.length === 0) return null;
 
       const targetList = availableTargets.map(p => p.name).join("、");
