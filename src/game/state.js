@@ -125,6 +125,9 @@ class GameState {
     return this.players.filter(p => p.isAlive && !this.suspendedPlayers.includes(p.id));
   }
 
+  // Alias for compatibility
+  getAlivePlayers() { return this.getAlive(); }
+
   getAliveVillageTeam() {
     return this.getAlive().filter(p => {
       const role = ROLES[this.getEffectiveRole(p.id)];
