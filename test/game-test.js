@@ -8,7 +8,7 @@ const files = [
   "src/game/state.js", "src/game/logic.js", "src/ai/mock.js"
 ];
 const combined = files.map(f => fs.readFileSync(f, "utf8")).join("\n");
-new Function(combined + "\n" + "Object.assign(globalThis, {ROLES, COMPOSITIONS, AI_PLAYERS, GameState, GameLogic, MockAI, getCompositionText});")();
+new Function(combined + "\n" + "Object.assign(globalThis, {ROLES, DEFAULT_PRESETS, AI_PLAYERS, GameState, GameLogic, MockAI, getCompositionText});")();
 
 let passed = 0;
 let failed = 0;
@@ -57,12 +57,12 @@ async function runTests() {
   // 人狼 >= 村人陣営 → 人狼勝利
   const state3 = new GameState();
   state3.initPlayers("村人", 5);
-  const villagers3 = state3.getAliveVillagers();
+  const villagers3 = state3.getAliveVillageTeam();
   // 村人陣営を人狼の数まで減らす
   const wolvesCount = state3.getAliveWerewolves().length;
   let killed = 0;
   for (const v of villagers3) {
-    if (state3.getAliveVillagers().length <= wolvesCount) break;
+    if (state3.getAliveVillageTeam().length <= wolvesCount) break;
     state3.killPlayer(v.id);
     killed++;
   }
