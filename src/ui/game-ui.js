@@ -79,13 +79,16 @@ const GameUI = {
     if (type === 'system') {
       html = `<div class="system-message">${this.escapeHtml(content)}</div>`;
     } else if (type === 'ai') {
+      const aiName = (player && player.name) ? player.name : (sender || 'AI');
+      const aiColor = (player && player.avatarColor) ? player.avatarColor : '#ccc';
       html = `<div class="message-content">
-        <span class="sender ai-sender">AI (${sender})</span>
+        <span class="sender ai-sender" style="color:${aiColor}">${this.escapeHtml(aiName)}</span>
         <div class="text">${this.renderMarkdown(content)}</div>
       </div>`;
     } else if (type === 'you') {
+      const youName = (player && player.name) ? player.name : 'あなた';
       html = `<div class="message-content">
-        <span class="sender you-sender">あなた</span>
+        <span class="sender you-sender">${this.escapeHtml(youName)}</span>
         <div class="text">${this.renderMarkdown(content)}</div>
       </div>`;
     } else if (type === 'danger') {

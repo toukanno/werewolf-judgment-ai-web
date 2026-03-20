@@ -1,874 +1,332 @@
 /**
- * MockAI - Personality-driven AI for werewolf game
- * Vanilla JS implementation with no dependencies
+ * MockAI - 性格に基づく日本語AI発言生成
+ * APIキー不要で動作するダミーAI
  */
-
 class MockAI {
   constructor() {
-    this.personalityStyles = [
-      'analytical', 'aggressive', 'cautious', 'social', 'observer',
-      'emotional', 'suspicious', 'adaptive', 'facilitator', 'careful',
-      'logical', 'supportive', 'offensive', 'latebloomer'
+    this._buildDialogue();
+  }
+
+  _buildDialogue() {
+    // Day 1 introductions by personality style
+    this.intros = {
+      analytical: [
+        "おはようございます。まずは情報整理から始めましょう。占い師がいれば結果共有をお願いします。",
+        "冷静に行きましょう。初日は情報が少ないので、発言の内容と態度をよく観察します。",
+        "初日ですね。占いCOがあるかどうか、まずはそこから確認したいです。",
+      ],
+      aggressive: [
+        "おはよう！初日から全力で行くよ！怪しい人いたらどんどん指摘して！",
+        "さっさと人狼見つけようよ。黙ってる人は怪しいからね。",
+        "占い師、早くCOして！情報がないと話にならないから！",
+      ],
+      cautious: [
+        "おはようございます。初日は慎重に行きたいですね。まずは皆さんの意見を聞きましょう。",
+        "焦って間違った人を吊ってしまわないよう、じっくり議論しましょう。",
+        "皆さんの発言をしっかり聞いてから判断したいと思います。",
+      ],
+      social: [
+        "おはようございます〜！楽しく、でも真剣に行きましょうね！",
+        "みんなで協力して人狼を見つけましょう！占い師さん、お願いしますね♪",
+        "初日って緊張しますよね〜。でも頑張りましょう！",
+      ],
+      observer: [
+        "…おはよう。様子を見させてもらう。",
+        "まずは聞く側に回る。何か気になったら言う。",
+        "初日か。…まずは全員の反応を見てからだな。",
+      ],
+      emotional: [
+        "おはよう！絶対に人狼を見つけ出してみせる！村を守るんだ！",
+        "みんな、信じ合うことも大事だけど、騙されないようにしないとね！",
+        "正義は必ず勝つ！みんなで力を合わせよう！",
+      ],
+      suspicious: [
+        "…おはよう。正直、この中に人狼がいると思うと気が気じゃない。",
+        "誰も信用できない状況だけど、少しずつ情報を集めよう。",
+        "占い師が本物かどうかも疑わないとな…。",
+      ],
+      adaptive: [
+        "おはようございます。状況を見て柔軟に対応していきますね。",
+        "初日の流れ次第で動き方を決めます。まずは様子見。",
+        "情報をしっかり集めてから方針を決めたいです。",
+      ],
+      facilitator: [
+        "おはようございます！まず占い師のCOを聞いてから議論を進めましょう。",
+        "はい、では順番に意見を出していきましょう。まず占い師から。",
+        "効率よく議論を進めたいです。まずは情報共有から始めましょう。",
+      ],
+      careful: [
+        "おはようございます。些細なことでも気になったら共有してくださいね。",
+        "小さな矛盾が大きな手がかりになることもあります。丁寧に行きましょう。",
+        "発言のニュアンスにも注目していきたいと思います。",
+      ],
+      logical: [
+        "おはよう。確率論的に考えると、初日は情報が足りない。まずはデータ収集だ。",
+        "論理的に整理しよう。まず人数構成から考えて、人狼の数は…",
+        "感覚じゃなくて事実に基づいて判断しよう。",
+      ],
+      supportive: [
+        "おはようございます。みなさん、一緒に頑張りましょうね。",
+        "初日は不安ですけど、きっと大丈夫。冷静に行きましょう。",
+        "誰かが困ってたらフォローしますので、安心して発言してください。",
+      ],
+      offensive: [
+        "よっしゃ、始まったな！初日から攻めるぞ！",
+        "黙ってる奴は怪しい。どんどん意見出していこう！",
+        "さあ、人狼をあぶり出すぞ！遠慮はいらない！",
+      ],
+      latebloomer: [
+        "……おはよう。まだ何も分からないから、聞いてる。",
+        "今は静かにしてるけど…何か見えたら言う。",
+        "初日はまだ早い。じっくり見てからにする。",
+      ],
+    };
+
+    // Village team statements (non-Day1)
+    this.villageStatements = [
+      "{target}さんの発言が気になります。少し矛盾を感じました。",
+      "昨日の投票先を整理しましょう。{target}さんはなぜあの人に入れたんですか？",
+      "私は村人です。疑うなら占ってもらえればいい。",
+      "冷静に考えて、{target}さんが一番怪しいと思います。",
+      "ここで間違えると村は終わりです。慎重に選びましょう。",
+      "今日は{target}さんに投票しようと思います。理由は昨日の発言の違和感です。",
+      "発言が少ない人も気になります。{target}さん、何か意見はありますか？",
+      "人狼は必ずボロを出す。焦らず観察しましょう。",
+      "占い結果と合わせて考えると、{target}さんのラインが気になりますね。",
+      "グレーの中で一番怪しいのは{target}さんだと思います。",
+      "そろそろ決断の時です。{target}さんに票を集めませんか？",
+      "昨日の夜の結果を踏まえると、{target}さんの立場は苦しいですね。",
     ];
 
-    this.dialoguePool = {
-      villager: {
-        analytical: [
-          'Looking at the vote patterns, I think we should target the most suspicious player.',
-          'Let me analyze who spoke the most last round.',
-          'Based on behavior, I suspect a wolf among us.',
-          'The statistics suggest we should investigate further.'
-        ],
-        aggressive: [
-          'I\'m voting for them - they\'re clearly suspicious!',
-          'That person is definitely a wolf, I can feel it.',
-          'We need to move fast and eliminate threats.',
-          'Stop wasting time, let\'s vote them out!'
-        ],
-        cautious: [
-          'I\'m not entirely sure, but something feels off.',
-          'We should be careful about accusations without proof.',
-          'Let\'s wait for more information before deciding.',
-          'I think we need to be strategic here.'
-        ],
-        social: [
-          'Hey everyone, what do you all think about this?',
-          'Let\'s work together to figure this out.',
-          'I trust your judgment on this one.',
-          'What\'s everyone\'s take on the situation?'
-        ],
-        observer: [
-          'I\'ve been watching how people react.',
-          'Notice how they responded to that claim?',
-          'The body language is interesting.',
-          'I\'m noting the pattern of who speaks when.'
-        ],
-        emotional: [
-          'I really feel like they\'re being dishonest!',
-          'This is so stressful, I don\'t know who to trust!',
-          'My gut tells me something\'s wrong here.',
-          'I\'m getting a bad feeling about this.'
-        ],
-        suspicious: [
-          'Something about that explanation doesn\'t add up.',
-          'They\'re being way too quiet about it.',
-          'That alibi sounds made up to me.',
-          'Why are they defending them so hard?'
-        ],
-        logical: [
-          'If we eliminate them first, we reduce wolf power.',
-          'The math says we have a 70% chance they\'re guilty.',
-          'Following the logic, they should be our target.',
-          'Statistically speaking, this is the right move.'
-        ]
-      },
+    // Seer CO and report
+    this.seerStatements = {
+      co: [
+        "占いCOします！{target}さんを占った結果、【{result}】でした！",
+        "占い師です。昨晩{target}さんを占いました。結果は【{result}】です。",
+      ],
+      general: [
+        "占い結果を報告します。{target}さんは【{result}】でした。",
+        "昨晩の占い結果：{target}さん→【{result}】。慎重に進めましょう。",
+        "私の占い結果を信じてください。{target}さんは【{result}】です。",
+      ]
+    };
 
-      seer: {
-        analytical: [
-          'I\'ve been divining players systematically. My results matter.',
-          'Based on my findings, I can help guide us.',
-          'Let me share what I\'ve discovered about certain players.',
-          'My information suggests we should focus on specific targets.'
-        ],
-        aggressive: [
-          'I\'m a seer and I\'m telling you - they\'re wolves!',
-          'Trust my ability, I know exactly who they are!',
-          'My divinations don\'t lie - vote them out now!',
-          'I\'ve seen the truth and it\'s clear as day!'
-        ],
-        cautious: [
-          'As the seer, I need to be careful about when I reveal.',
-          'I have important information, but timing is crucial.',
-          'I\'m withholding some details for strategic reasons.',
-          'Let me share what I can safely reveal now.'
-        ],
-        social: [
-          'I\'ve been gifted with sight, let me help everyone.',
-          'Together, we can use my information to win.',
-          'Trust me and my divinations, friends.',
-          'Let\'s work as a team using what I\'ve learned.'
-        ],
-        observer: [
-          'Interestingly, my readings match their behavior.',
-          'I\'ve noticed patterns that confirm my divinations.',
-          'Watch how they react to my claims.',
-          'The consistency is remarkable.'
-        ],
-        emotional: [
-          'I\'m terrified of making the wrong revelation!',
-          'My heart is pounding with what I know!',
-          'The pressure of this knowledge is overwhelming!',
-          'I\'m scared of being lynched, but I must speak!'
-        ],
-        suspicious: [
-          'Something doesn\'t match up with their claim.',
-          'They\'re acting differently than expected for their role.',
-          'I doubt their innocence based on my reading.',
-          'The numbers don\'t lie - they\'re suspicious.'
-        ],
-        logical: [
-          'My ability is foolproof within game mechanics.',
-          'Using probability, we should eliminate my targets first.',
-          'The logical approach is to trust seer claims.',
-          'My divinations eliminate half the variables.'
-        ]
-      },
+    // Medium statements
+    this.mediumStatements = [
+      "霊能結果を報告します。昨日処刑された方は【{result}】でした。",
+      "霊能COします。処刑された人の判定は【{result}】です。",
+      "霊能者です。昨日の処刑結果は【{result}】でした。参考にしてください。",
+    ];
 
-      medium: {
-        analytical: [
-          'The autopsy results show important information.',
-          'Analyzing who died reveals much about the wolves.',
-          'These execution patterns tell a story.',
-          'The medium data points to specific conclusions.'
-        ],
-        aggressive: [
-          'The executed player was definitely a wolf - I confirmed it!',
-          'They\'re all suspicious now that I have proof!',
-          'My findings show we\'re on the right track - attack harder!',
-          'The evidence is overwhelming!'
-        ],
-        cautious: [
-          'The results are in, but we must be careful interpreting them.',
-          'This information helps, but it\'s not everything.',
-          'Let me share what I can deduce responsibly.',
-          'The execution results support my observations.'
-        ],
-        social: [
-          'Let me help everyone understand what the results mean.',
-          'Working together with this info, we\'ll win!',
-          'I\'m here to support the village team.',
-          'Trust in our shared knowledge to guide us.'
-        ],
-        observer: [
-          'Notice the pattern in who got executed.',
-          'The medium role reveals consistent trends.',
-          'I\'ve been tracking the execution patterns closely.',
-          'The data shows an interesting sequence.'
-        ],
-        emotional: [
-          'I was so worried about that execution!',
-          'The results shocked me - I can barely speak!',
-          'Knowing the truth fills me with dread or relief!',
-          'This medium ability is exhausting emotionally!'
-        ],
-        suspicious: [
-          'That result was unexpected - something\'s off.',
-          'The pattern doesn\'t match what I predicted.',
-          'They might be someone special, not a pure wolf.',
-          'The medium results are raising new questions.'
-        ],
-        logical: [
-          'Logically, the medium results eliminate possibilities.',
-          'This data point narrows our options significantly.',
-          'Using the medium info, probability favors us.',
-          'The statistical evidence is now stronger.'
-        ]
-      },
+    // Knight hints
+    this.knightStatements = [
+      "昨晩は平和でしたね。護衛が成功した可能性もあります。",
+      "狩人がいるなら、重要な役職を守ってほしいですね。",
+      "襲撃先を考えると、今夜の護衛先は慎重に選ぶべきです。",
+    ];
 
-      knight: {
-        analytical: [
-          'I\'m planning my protection strategy carefully.',
-          'Defending the seer makes the most mathematical sense.',
-          'I\'m analyzing who needs protection most.',
-          'My guard placement should follow statistical threat assessment.'
-        ],
-        aggressive: [
-          'I\'ll guard the strongest player so we can fight back!',
-          'No wolf is taking anyone while I\'m protecting!',
-          'I\'m standing my ground against the wolves!',
-          'Let them try - I\'ll block every attack!'
-        ],
-        cautious: [
-          'I need to think about who truly needs protection.',
-          'Guards are valuable - I can\'t waste them.',
-          'Maybe I should focus on self-protection.',
-          'The knight role is risky, I must be careful.'
-        ],
-        social: [
-          'I\'ll protect whoever the village decides needs it.',
-          'Let\'s coordinate protection as a team.',
-          'Who do you all think needs guarding most?',
-          'We can communicate our strategy together.'
-        ],
-        observer: [
-          'I\'m watching who the wolves target.',
-          'Noting the attack patterns helps me guard better.',
-          'The targets tell me who\'s important.',
-          'I\'ve learned to anticipate the wolf strikes.'
-        ],
-        emotional: [
-          'I feel so responsible protecting people!',
-          'The weight of this role terrifies me!',
-          'I\'m emotionally drained from these decisions!',
-          'I hope I save the right person!'
-        ],
-        suspicious: [
-          'Something seems off about who wants protection.',
-          'Why are they suggesting I guard them specifically?',
-          'The requests feel coordinated somehow.',
-          'I don\'t trust who\'s pushing me to guard whom.'
-        ],
-        logical: [
-          'The knight should protect high-value targets first.',
-          'Probability suggests protecting the seer always.',
-          'Game theory says concentrate protection on key roles.',
-          'Mathematically, I should follow predictable patterns.'
-        ]
-      },
+    // Baker statements
+    this.bakerStatements = [
+      "今日もパンが焼けました！みんなで力を合わせましょう。",
+      "パン屋は元気です。村の平和のために頑張りましょう。",
+      "おはようございます。今日もおいしいパンが焼けましたよ。",
+    ];
 
-      baker: {
-        analytical: [
-          'As the baker, I\'ve observed everyone\'s behavior today.',
-          'The morning message helps me analyze the situation.',
-          'I\'ve been logically tracking everyone\'s movements.',
-          'My daily insights are valuable to our strategy.'
-        ],
-        aggressive: [
-          'Fresh bread thoughts for the day: they\'re sus!',
-          'While making bread, I realized who\'s lying!',
-          'Time to bake and expose some wolves!',
-          'My baker wisdom says: vote them out!'
-        ],
-        cautious: [
-          'I share bread and careful observations each morning.',
-          'My baking gives me time to think strategically.',
-          'I prefer to observe before making accusations.',
-          'The baker role lets me gather information safely.'
-        ],
-        social: [
-          'Fresh bread for everyone! Now let\'s chat strategy.',
-          'My morning message is meant to unite us.',
-          'I love being the baker - it\'s a social role!',
-          'Let\'s break bread and solve this together!'
-        ],
-        observer: [
-          'While baking, I notice everything about everyone.',
-          'My daily observations have been quite revealing.',
-          'The baker sees all from the kitchen.',
-          'I\'ve learned the patterns through bread-making.'
-        ],
-        emotional: [
-          'I put my heart into every loaf I bake!',
-          'The baker role fills me with purpose and emotion!',
-          'I care deeply about our village survival!',
-          'Baking and analyzing makes me feel useful!'
-        ],
-        suspicious: [
-          'Something\'s not right with their bread preferences.',
-          'Why don\'t they trust my baker instincts?',
-          'The way they comment on bread is suspicious.',
-          'I sense deception in their baking judgments.'
-        ],
-        logical: [
-          'The baker role statistically survives longer.',
-          'My daily messages give strategic advantage.',
-          'Logically, the baker should be trusted.',
-          'Probability favors baker survival.'
-        ]
-      },
+    // Werewolf statements (pretending to be village)
+    this.wolfStatements = [
+      "私は村人です。{target}さんの方が怪しくないですか？",
+      "{target}さんに投票します。あの発言は明らかにおかしい。",
+      "落ち着いて考えましょう。{target}さんの発言に違和感がありました。",
+      "占い師の結果を信じるなら、{target}さんが怪しいですよね。",
+      "ここは{target}さんを吊るべきだと思います。消去法で考えて。",
+      "自分は村人側です。信じてほしい。{target}さんこそ怪しい。",
+      "人狼を見つけないと。{target}さん、弁明はありますか？",
+      "村のために発言してるのに疑われるのは辛いです…。",
+      "{target}さんのさっきの発言、引っかかりました。人狼っぽくないですか？",
+    ];
 
-      werewolf: {
-        analytical: [
-          'I\'ve been observing the villagers carefully.',
-          'My analysis suggests the seer is a major threat.',
-          'Let me identify who to eliminate strategically.',
-          'The vote patterns tell me who to target next.'
-        ],
-        aggressive: [
-          'We should strike hard and eliminate fast!',
-          'The wolves will dominate - I can feel it!',
-          'Time to hunt down the village team!',
-          'Let\'s be ruthless about this!'
-        ],
-        cautious: [
-          'We need to be careful not to reveal ourselves.',
-          'Slow and steady wins this game.',
-          'Let me observe before we commit to targets.',
-          'A strategic approach will serve us better.'
-        ],
-        social: [
-          'The village seems divided - let\'s exploit that.',
-          'I\'ll blend in with the villagers naturally.',
-          'Building trust is our best weapon.',
-          'Let me play the social game with them.'
-        ],
-        observer: [
-          'I\'ve been watching who seems intelligent.',
-          'The behavior patterns reveal who\'s a threat.',
-          'Notice how the seer acts suspiciously.',
-          'I\'m tracking everyone\'s speech carefully.'
-        ],
-        emotional: [
-          'Being a wolf is thrilling!',
-          'The pressure of hiding excites me!',
-          'I feel the power of the pack!',
-          'This is exhilarating but terrifying!'
-        ],
-        suspicious: [
-          'That person is definitely a danger to us.',
-          'They\'re sniffing around for us.',
-          'I don\'t trust their act at all.',
-          'Something about them screams threat.'
-        ],
-        logical: [
-          'Mathematically, we should eliminate special roles first.',
-          'The seer is the top priority threat.',
-          'Statistically, we have a 60% win chance with good plays.',
-          'The logical path is predictable targets.'
-        ]
-      },
+    // Madman/Fanatic statements
+    this.madmanStatements = [
+      "占いCOします！{target}さんは【村人】でした！",
+      "皆さん、{target}さんは怪しいですよ。投票しましょう。",
+      "私が占い師です。対抗がいますが、私が本物です。",
+      "情報が錯綜してますね…{target}さんに注目した方がいいかも。",
+      "{target}さんを信じるのは危険だと思います。",
+      "ちょっと待ってください。{target}さんの発言をもう一度考えましょう。",
+    ];
 
-      madman: {
-        analytical: [
-          'I\'m analyzing this situation carefully.',
-          'The madness gives me clarity somehow.',
-          'My observations might seem chaotic but are logical.',
-          'Let me share my detailed analysis.'
-        ],
-        aggressive: [
-          'I\'m calling out the village team members!',
-          'Wake up! You\'re all blind to the truth!',
-          'I\'ll expose everyone and cause chaos!',
-          'My madness will destroy your unity!'
-        ],
-        cautious: [
-          'I need to be careful about how I act.',
-          'My role demands strategic madness.',
-          'Let me pretend to be a seer carefully.',
-          'The madman must seem believable.'
-        ],
-        social: [
-          'I\'m one of you - trust me on this!',
-          'Let\'s work together to eliminate them!',
-          'I feel your pain, we\'re all in this!',
-          'Join me in this strategy!'
-        ],
-        observer: [
-          'I\'ve noticed something odd about them.',
-          'Their behavior gives them away.',
-          'Watch how they respond to accusations.',
-          'The pattern is becoming clear to me.'
-        ],
-        emotional: [
-          'The madness overwhelms me sometimes!',
-          'I feel tormented by this knowledge!',
-          'My emotions are a rollercoaster!',
-          'The confusion drives me crazy!'
-        ],
-        suspicious: [
-          'They\'re definitely trying to control us!',
-          'I sense deception everywhere!',
-          'Everyone could be lying to me!',
-          'Trust no one but me!'
-        ],
-        logical: [
-          'Even in madness, I can calculate probabilities.',
-          'Statistically, my chaos serves a purpose.',
-          'The madman role follows hidden logic.',
-          'My apparent randomness follows patterns.'
-        ]
-      },
+    // Fox team statements
+    this.foxStatements = [
+      "皆さんの意見を聞いてから判断したいです。",
+      "今は情報が少ないので、慎重にいきましょう。",
+      "{target}さんの発言は気になりますが、確証はないですね。",
+      "私は村人です。怪しいところがあれば指摘してください。",
+      "バランスを見て投票先を決めたいと思います。",
+    ];
 
-      fox: {
-        analytical: [
-          'I\'m analyzing both sides carefully.',
-          'My survival depends on careful observation.',
-          'The fox must read the situation precisely.',
-          'I\'m tracking who to trust and who to avoid.'
-        ],
-        aggressive: [
-          'I\'ll outlast both teams if needed!',
-          'The fox is superior - I\'ll dominate!',
-          'Neither wolves nor villagers can touch me!',
-          'My independence makes me unbeatable!'
-        ],
-        cautious: [
-          'I must be extremely careful about being discovered.',
-          'Every move could expose me.',
-          'The fox plays it safe and quiet.',
-          'Discretion is my greatest weapon.'
-        ],
-        social: [
-          'I\'ll seem friendly to everyone.',
-          'Building relationships helps my survival.',
-          'I need both sides to trust me.',
-          'Social bonds are my protection.'
-        ],
-        observer: [
-          'I\'ve learned to read people expertly.',
-          'The fox sees everything.',
-          'I notice who\'s truly hunting.',
-          'My observation skills keep me alive.'
-        ],
-        emotional: [
-          'Being alone is hard but necessary.',
-          'I feel isolated but understand why.',
-          'The fox\'s loneliness is real.',
-          'My emotions guide my survival instincts.'
-        ],
-        suspicious: [
-          'I don\'t fully trust anyone.',
-          'Everyone could expose me.',
-          'I question all their motives.',
-          'Suspicion keeps me safe.'
-        ],
-        logical: [
-          'Probability suggests survival if I hide well.',
-          'The fox has a 40% win rate typically.',
-          'Logic says avoid being the center of attention.',
-          'Mathematically, I should let them fight.'
-        ]
-      }
+    // Style modifiers
+    this.styleModifiers = {
+      analytical: { prefix: "", suffix: "" },
+      aggressive: { prefix: "", suffix: "！" },
+      cautious: { prefix: "うーん、", suffix: "" },
+      social: { prefix: "", suffix: "ね〜" },
+      observer: { prefix: "…", suffix: "" },
+      emotional: { prefix: "", suffix: "！" },
+      suspicious: { prefix: "正直、", suffix: "" },
+      adaptive: { prefix: "", suffix: "" },
+      facilitator: { prefix: "整理すると、", suffix: "" },
+      careful: { prefix: "ちょっと気になるのが、", suffix: "" },
+      logical: { prefix: "論理的に考えて、", suffix: "" },
+      supportive: { prefix: "", suffix: "よね。" },
+      offensive: { prefix: "", suffix: "ぞ！" },
+      latebloomer: { prefix: "……", suffix: "" },
     };
   }
 
-  /**
-   * Get personality-based dialogue for a player
-   * @param {Object} player - Player object with id, role, style
-   * @param {Object} state - Game state with day, phase, players, etc.
-   * @returns {string} Dialogue text
-   */
-  getStatement(player, state) {
-    if (!player || !state) return 'I need more time to think.';
+  _pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-    const poolKey = this.getDialoguePoolKey(player.role);
-    const style = player.style || 'logical';
-
-    const rolePool = this.dialoguePool[poolKey]?.[style] || [];
-
-    if (rolePool.length === 0) {
-      return this.getDefaultStatement(player, state);
-    }
-
-    const statement = rolePool[Math.floor(Math.random() * rolePool.length)];
-    return this.applyContextModifiers(statement, player, state);
+  _randomTarget(alive, excludeId) {
+    const targets = alive.filter(p => p.id !== excludeId);
+    return targets.length > 0 ? this._pick(targets) : null;
   }
 
-  /**
-   * Get vote target for a player
-   * @param {Object} player - Player with role and team
-   * @param {Array} targets - Available players to vote for
-   * @param {Object} state - Game state
-   * @returns {string} Target player ID
-   */
-  getVote(player, targets, state) {
-    if (!targets || targets.length === 0) return null;
+  async getStatement(player, state) {
+    const role = player.role;
+    const roleData = ROLES[role];
+    const team = roleData ? roleData.team : "village";
+    const isDay1 = state.day === 1;
+    const alive = state.getAlive();
+    const target = this._randomTarget(alive, player.id);
+    const targetName = target ? target.name : "誰か";
 
-    const roleData = this.getRoleData(player.role);
-    const team = roleData?.team;
+    let text;
 
-    // Filter out self
-    const validTargets = targets.filter(t => t.id !== player.id);
-    if (validTargets.length === 0) return targets[0].id;
-
-    // Werewolf team votes for village team
-    if (team === 'werewolf') {
-      const villageTargets = validTargets.filter(t =>
-        this.getRoleData(t.role)?.team === 'village'
-      );
-      if (villageTargets.length > 0) {
-        // Prioritize special roles
-        const specialRoles = ['seer', 'medium', 'knight', 'doctor'];
-        const special = villageTargets.find(t => specialRoles.includes(t.role));
-        return special ? special.id : villageTargets[Math.floor(Math.random() * villageTargets.length)].id;
+    if (isDay1) {
+      const styleIntros = this.intros[player.style] || this.intros.cautious;
+      text = this._pick(styleIntros);
+    } else if (role === "seer" || role === "sage" || role === "fakeSeer") {
+      const pool = state.day === 2 ? this.seerStatements.co : this.seerStatements.general;
+      text = this._pick(pool);
+      const divineResult = Math.random() > 0.6 ? "人狼" : "村人";
+      text = text.replace("{result}", divineResult);
+    } else if (role === "medium") {
+      if (state.mediumResults && state.mediumResults.length > 0) {
+        text = this._pick(this.mediumStatements);
+        const lastResult = state.mediumResults[state.mediumResults.length - 1];
+        text = text.replace("{result}", lastResult.result === "werewolf" ? "人狼" : "村人");
+      } else {
+        text = this._pick(this.villageStatements);
       }
+    } else if (role === "knight" || role === "trapper" || role === "doctor") {
+      text = Math.random() > 0.5 ? this._pick(this.knightStatements) : this._pick(this.villageStatements);
+    } else if (role === "baker") {
+      text = state.day === 2 ? this._pick(this.bakerStatements) : this._pick(this.villageStatements);
+    } else if (role === "madman" || role === "fanatic" || role === "whisperMad" || role === "sorcerer" || role === "wolfBoy") {
+      text = this._pick(this.madmanStatements);
+    } else if (role === "fox" || role === "childFox" || role === "immoralist") {
+      text = this._pick(this.foxStatements);
+    } else if (team === "werewolf") {
+      text = this._pick(this.wolfStatements);
+    } else {
+      text = this._pick(this.villageStatements);
     }
 
-    // Madman and fanatic vote for village
-    if (['madman', 'fanatic'].includes(player.role)) {
-      const villageTargets = validTargets.filter(t =>
-        this.getRoleData(t.role)?.team === 'village'
-      );
-      if (villageTargets.length > 0) {
-        return villageTargets[Math.floor(Math.random() * villageTargets.length)].id;
-      }
+    text = text.replace(/{target}/g, targetName);
+
+    // Apply style modifier occasionally
+    if (!isDay1 && Math.random() > 0.6) {
+      const mod = this.styleModifiers[player.style] || {};
+      if (mod.prefix && !text.startsWith(mod.prefix)) text = mod.prefix + text;
+      if (mod.suffix) text = text.replace(/[。！？]?$/, mod.suffix);
     }
 
-    // Fox votes cautiously to avoid attention
-    if (player.role === 'fox') {
-      // Avoid wolves and strong village roles
-      const safeTargets = validTargets.filter(t => {
-        const tRole = t.role;
-        const unsafeRoles = ['werewolf', 'seer', 'medium', 'knight'];
-        return !unsafeRoles.includes(tRole);
+    await new Promise(r => setTimeout(r, 400 + Math.random() * 800));
+    return text;
+  }
+
+  async getVote(player, targets, state) {
+    await new Promise(r => setTimeout(r, 200 + Math.random() * 400));
+
+    const role = player.role;
+    const roleData = ROLES[role];
+    const team = roleData ? roleData.team : "village";
+
+    if (role === "werewolf" || role === "bigWolf" || role === "talkativeWolf" ||
+        role === "greedyWolf" || role === "wiseWolf" || role === "reviveWolf" || role === "ableWolf") {
+      const villagers = targets.filter(t => {
+        const r = ROLES[t.role];
+        return r && r.team !== "werewolf";
       });
-      if (safeTargets.length > 0) {
-        return safeTargets[Math.floor(Math.random() * safeTargets.length)].id;
-      }
+      if (villagers.length > 0) return this._pick(villagers).id;
+    } else if (role === "madman" || role === "fanatic" || role === "whisperMad" ||
+               role === "blackCat" || role === "sorcerer" || role === "wolfBoy") {
+      const villagers = targets.filter(t => {
+        const r = ROLES[t.role];
+        return r && r.team === "village";
+      });
+      if (villagers.length > 0) return this._pick(villagers).id;
+    } else if (role === "fox" || role === "childFox" || role === "immoralist") {
+      // Fox votes to maintain balance
+      return this._pick(targets).id;
+    }
+    return this._pick(targets).id;
+  }
+
+  async getNightAction(player, targets, state) {
+    await new Promise(r => setTimeout(r, 200 + Math.random() * 400));
+
+    const role = player.role;
+    const roleData = ROLES[role];
+    if (!roleData || !roleData.nightAction) return null;
+
+    const ability = roleData.ability;
+
+    if (ability === "attack") {
+      const villagers = targets.filter(t => {
+        const r = ROLES[t.role];
+        return r && r.team === "village";
+      });
+      return villagers.length > 0 ? this._pick(villagers).id : this._pick(targets).id;
+    }
+    if (ability === "guard") {
+      const guardable = targets.filter(t => t.id !== state.lastGuardTarget);
+      return guardable.length > 0 ? this._pick(guardable).id : null;
+    }
+    if (ability === "divine" || ability === "sageDiv" || ability === "fakeDivine" || ability === "weakDivine") {
+      const unscanned = targets.filter(t => !state.divinedPlayers[t.id]);
+      return unscanned.length > 0 ? this._pick(unscanned).id : this._pick(targets).id;
+    }
+    if (ability === "trap") {
+      return this._pick(targets).id;
+    }
+    if (ability === "heal") {
+      const healable = targets.filter(t => !state.healTargets || state.healTargets[t.id] !== state.day - 1);
+      return healable.length > 0 ? this._pick(healable).id : this._pick(targets).id;
+    }
+    if (ability === "steal" || ability === "haunt" || ability === "matchmake" || ability === "watchdog") {
+      return this._pick(targets).id;
+    }
+    if (ability === "bless") {
+      if (state.priestUsed) return null;
+      return this._pick(targets).id;
+    }
+    if (ability === "witch") {
+      return this._pick(targets).id;
+    }
+    if (ability === "flee") {
+      const nonWolves = targets.filter(t => {
+        const r = ROLES[t.role];
+        return r && r.team !== "werewolf";
+      });
+      return nonWolves.length > 0 ? this._pick(nonWolves).id : this._pick(targets).id;
+    }
+    if (ability === "sorcery" || ability === "frame") {
+      return this._pick(targets).id;
+    }
+    if (ability === "gift") {
+      return this._pick(targets).id;
     }
 
-    // Village team - random with slight suspicion bias
-    return validTargets[Math.floor(Math.random() * validTargets.length)].id;
-  }
-
-  /**
-   * Get night action target for a player
-   * @param {Object} player - Player with abilities
-   * @param {Array} targets - Available targets
-   * @param {Object} state - Game state
-   * @returns {string|null} Target player ID
-   */
-  getNightAction(player, targets, state) {
-    if (!player.role || !targets || targets.length === 0) return null;
-
-    const roleData = this.getRoleData(player.role);
-    const ability = roleData?.ability;
-
-    if (!ability) return null;
-
-    // Filter valid targets (usually can't target self, but some can)
-    const validTargets = this.getValidNightTargets(player, targets, state);
-    if (validTargets.length === 0) return null;
-
-    switch (ability) {
-      case 'attack':
-        return this.selectAttackTarget(player, validTargets, state);
-      case 'divine':
-        return this.selectDivineTarget(player, validTargets, state);
-      case 'mediumDive':
-        return null; // Medium doesn't take night action
-      case 'guard':
-        return this.selectGuardTarget(player, validTargets, state);
-      case 'trap':
-        return this.selectTrapTarget(player, validTargets, state);
-      case 'heal':
-        return this.selectHealTarget(player, validTargets, state);
-      case 'steal':
-        return this.selectStealTarget(player, validTargets, state);
-      case 'haunt':
-        return this.selectHauntTarget(player, validTargets, state);
-      case 'bless':
-        return this.selectBlessTarget(player, validTargets, state);
-      case 'sageDiv':
-        return this.selectSageDivineTarget(player, validTargets, state);
-      case 'fakeDivine':
-        return this.selectFakeDivineTarget(player, validTargets, state);
-      case 'flee':
-        return this.selectFleeTarget(player, validTargets, state);
-      case 'witch':
-        return this.selectWitchTarget(player, validTargets, state);
-      case 'watchdog':
-        return this.selectWatchdogTarget(player, validTargets, state);
-      case 'sorcery':
-        return this.selectSorceryTarget(player, validTargets, state);
-      case 'frame':
-        return this.selectFrameTarget(player, validTargets, state);
-      case 'weakDivine':
-        return this.selectWeakDivineTarget(player, validTargets, state);
-      case 'gift':
-        return this.selectGiftTarget(player, validTargets, state);
-      case 'matchmake':
-        return this.selectMatchmakeTarget(player, validTargets, state);
-      default:
-        return null;
-    }
-  }
-
-  // Helper methods
-
-  getValidNightTargets(player, allTargets, state) {
-    return allTargets.filter(t => t.id !== player.id && !t.dead);
-  }
-
-  selectAttackTarget(player, targets, state) {
-    // Werewolves target village team, avoid other werewolves
-    const villageTargets = targets.filter(t => {
-      const tRole = this.getRoleData(t.role);
-      return tRole?.team === 'village';
-    });
-    if (villageTargets.length === 0) return null;
-
-    // Prioritize special roles
-    const specialRoles = ['seer', 'medium', 'knight', 'doctor'];
-    const special = villageTargets.find(t => specialRoles.includes(t.role));
-    return special ? special.id : villageTargets[Math.floor(Math.random() * villageTargets.length)].id;
-  }
-
-  selectDivineTarget(player, targets, state) {
-    // Seer targets unscanned players
-    const scanned = state.divinedPlayers || {};
-    const unscanned = targets.filter(t => !scanned[t.id]);
-    return unscanned.length > 0
-      ? unscanned[Math.floor(Math.random() * unscanned.length)].id
-      : targets[Math.floor(Math.random() * targets.length)].id;
-  }
-
-  selectGuardTarget(player, targets, state) {
-    // Knight protects seer or important targets
-    const protectTargets = targets.filter(t =>
-      ['seer', 'medium', 'doctor'].includes(t.role)
-    );
-    if (protectTargets.length > 0) {
-      // Avoid guarding same player consecutively
-      const lastGuarded = state.lastGuardedByKnight;
-      const validProtect = protectTargets.filter(t => t.id !== lastGuarded);
-      if (validProtect.length > 0) {
-        return validProtect[Math.floor(Math.random() * validProtect.length)].id;
-      }
-    }
-    return targets[Math.floor(Math.random() * targets.length)].id;
-  }
-
-  selectTrapTarget(player, targets, state) {
-    // Trapper sets trap on likely targets
-    return targets[Math.floor(Math.random() * targets.length)].id;
-  }
-
-  selectHealTarget(player, targets, state) {
-    // Doctor heals, avoiding consecutive same targets
-    const lastHealed = state.lastHealedByDoctor;
-    const validTargets = targets.filter(t => t.id !== lastHealed);
-    const targetList = validTargets.length > 0 ? validTargets : targets;
-    return targetList[Math.floor(Math.random() * targetList.length)].id;
-  }
-
-  selectStealTarget(player, targets, state) {
-    // Thief steals from special roles
-    const specialRoles = ['seer', 'medium', 'knight', 'doctor'];
-    const special = targets.filter(t => specialRoles.includes(t.role));
-    return special.length > 0
-      ? special[Math.floor(Math.random() * special.length)].id
-      : targets[Math.floor(Math.random() * targets.length)].id;
-  }
-
-  selectHauntTarget(player, targets, state) {
-    // Ghost haunts special roles
-    const specialRoles = ['seer', 'medium', 'knight', 'doctor'];
-    const special = targets.filter(t => specialRoles.includes(t.role));
-    return special.length > 0
-      ? special[Math.floor(Math.random() * special.length)].id
-      : targets[Math.floor(Math.random() * targets.length)].id;
-  }
-
-  selectBlessTarget(player, targets, state) {
-    // Priest blesses important roles
-    const importantRoles = ['seer', 'medium', 'knight', 'doctor'];
-    const important = targets.filter(t => importantRoles.includes(t.role));
-    return important.length > 0
-      ? important[Math.floor(Math.random() * important.length)].id
-      : targets[Math.floor(Math.random() * targets.length)].id;
-  }
-
-  selectSageDivineTarget(player, targets, state) {
-    // Sage divines unread players
-    const read = state.sageReadPlayers || {};
-    const unread = targets.filter(t => !read[t.id]);
-    return unread.length > 0
-      ? unread[Math.floor(Math.random() * unread.length)].id
-      : targets[Math.floor(Math.random() * targets.length)].id;
-  }
-
-  selectFakeDivineTarget(player, targets, state) {
-    // Fake seer targets randomly
-    return targets[Math.floor(Math.random() * targets.length)].id;
-  }
-
-  selectFleeTarget(player, targets, state) {
-    // Fugitive flees to someone safe
-    const safeTargets = targets.filter(t => {
-      const tRole = this.getRoleData(t.role);
-      return tRole?.team !== 'werewolf';
-    });
-    return safeTargets.length > 0
-      ? safeTargets[Math.floor(Math.random() * safeTargets.length)].id
-      : targets[Math.floor(Math.random() * targets.length)].id;
-  }
-
-  selectWitchTarget(player, targets, state) {
-    // Witch targets strategically
-    return targets[Math.floor(Math.random() * targets.length)].id;
-  }
-
-  selectWatchdogTarget(player, targets, state) {
-    // Watchdog protects its owner
-    return player.id;
-  }
-
-  selectSorceryTarget(player, targets, state) {
-    // Sorcerer targets unread players
-    const sorcererRead = state.sorcererReadPlayers || {};
-    const unread = targets.filter(t => !sorcererRead[t.id]);
-    return unread.length > 0
-      ? unread[Math.floor(Math.random() * unread.length)].id
-      : targets[Math.floor(Math.random() * targets.length)].id;
-  }
-
-  selectFrameTarget(player, targets, state) {
-    // Wolf boy frames village members
-    const villageTargets = targets.filter(t => {
-      const tRole = this.getRoleData(t.role);
-      return tRole?.team === 'village';
-    });
-    return villageTargets.length > 0
-      ? villageTargets[Math.floor(Math.random() * villageTargets.length)].id
-      : targets[Math.floor(Math.random() * targets.length)].id;
-  }
-
-  selectWeakDivineTarget(player, targets, state) {
-    // Child fox weakly divines
-    const divined = state.childFoxDivinedPlayers || {};
-    const undivined = targets.filter(t => !divined[t.id]);
-    return undivined.length > 0
-      ? undivined[Math.floor(Math.random() * undivined.length)].id
-      : targets[Math.floor(Math.random() * targets.length)].id;
-  }
-
-  selectGiftTarget(player, targets, state) {
-    // Santa gifts to random players
-    return targets[Math.floor(Math.random() * targets.length)].id;
-  }
-
-  selectMatchmakeTarget(player, targets, state) {
-    // Cupid matches two people (returns first of pair)
-    // On first night, select two targets randomly
-    return targets[Math.floor(Math.random() * targets.length)].id;
-  }
-
-  getRoleData(roleId) {
-    const rolesData = {
-      // Village roles
-      villager: { team: 'village', category: 'basic' },
-      seer: { team: 'village', ability: 'divine' },
-      medium: { team: 'village', ability: 'mediumDive' },
-      knight: { team: 'village', ability: 'guard' },
-      baker: { team: 'village' },
-      trapper: { team: 'village', ability: 'trap' },
-      seerApprentice: { team: 'village', ability: 'divine' },
-      sage: { team: 'village', ability: 'sageDiv' },
-      fakeSeer: { team: 'village', ability: 'fakeDivine' },
-      strawDoll: { team: 'village' },
-      slave: { team: 'village' },
-      noble: { team: 'village' },
-      twin: { team: 'village' },
-      priest: { team: 'village', ability: 'bless' },
-      shrine: { team: 'village' },
-      elder: { team: 'village' },
-      nekomata: { team: 'village' },
-      wolfKiller: { team: 'village' },
-      sick: { team: 'village' },
-      doctor: { team: 'village', ability: 'heal' },
-      thief: { team: 'village', ability: 'steal' },
-      ghost: { team: 'village', ability: 'haunt' },
-      queen: { team: 'village' },
-      witch: { team: 'village', ability: 'witch' },
-      assassin: { team: 'village' },
-      mayor: { team: 'village' },
-      dictator: { team: 'village' },
-      fugitive: { team: 'village', ability: 'flee' },
-      redHood: { team: 'village' },
-      cursed: { team: 'village' },
-      wolfBitten: { team: 'village' },
-      watchdog: { team: 'village', ability: 'watchdog' },
-
-      // Werewolf team
-      werewolf: { team: 'werewolf', ability: 'attack' },
-      madman: { team: 'werewolf' },
-      fanatic: { team: 'werewolf' },
-      whisperMad: { team: 'werewolf' },
-      bigWolf: { team: 'werewolf', ability: 'attack' },
-      talkativeWolf: { team: 'werewolf', ability: 'attack' },
-      greedyWolf: { team: 'werewolf', ability: 'attack' },
-      wiseWolf: { team: 'werewolf', ability: 'attack' },
-      reviveWolf: { team: 'werewolf', ability: 'attack' },
-      ableWolf: { team: 'werewolf', ability: 'attack' },
-      psycho: { team: 'werewolf' },
-      blackCat: { team: 'werewolf' },
-      sorcerer: { team: 'werewolf', ability: 'sorcery' },
-      wolfBoy: { team: 'werewolf', ability: 'frame' },
-
-      // Fox team
-      fox: { team: 'fox' },
-      immoralist: { team: 'fox' },
-      childFox: { team: 'fox', ability: 'weakDivine' },
-
-      // Lover team
-      lover: { team: 'lover' },
-      cupid: { team: 'lover', ability: 'matchmake' },
-
-      // Zombie team
-      zombie: { team: 'zombie' },
-
-      // Other
-      santa: { team: 'other', ability: 'gift' }
-    };
-
-    return rolesData[roleId] || { team: 'village' };
-  }
-
-  getDialoguePoolKey(roleId) {
-    // Map roles to dialogue pool categories
-    const mapping = {
-      seer: 'seer',
-      medium: 'medium',
-      knight: 'knight',
-      baker: 'baker',
-      werewolf: 'werewolf',
-      bigWolf: 'werewolf',
-      talkativeWolf: 'werewolf',
-      greedyWolf: 'werewolf',
-      wiseWolf: 'werewolf',
-      reviveWolf: 'werewolf',
-      ableWolf: 'werewolf',
-      madman: 'madman',
-      fanatic: 'madman',
-      whisperMad: 'madman',
-      fox: 'fox',
-      childFox: 'fox',
-      immoralist: 'fox'
-    };
-    return mapping[roleId] || 'villager';
-  }
-
-  getDefaultStatement(player, state) {
-    const defaults = [
-      'What do you all think about this?',
-      'I need more information before deciding.',
-      'Let\'s work together on this.',
-      'I\'m observing the situation carefully.',
-      'What\'s your analysis?',
-      'This is interesting... I need to think.',
-      'I agree with careful consideration.',
-      'Let me share my thoughts.'
-    ];
-    return defaults[Math.floor(Math.random() * defaults.length)];
-  }
-
-  applyContextModifiers(statement, player, state) {
-    // Add day/phase context modifiers
-    if (state.day === 1 && state.phase === 'discussion') {
-      // First day - less confident
-      if (player.style === 'cautious') {
-        return 'Day one... ' + statement;
-      }
-    }
-    return statement;
-  }
-
-  /**
-   * Get intro statement for player selection phase
-   * @param {string} style - Personality style
-   * @returns {string} Intro dialogue
-   */
-  getIntro(style) {
-    const intros = {
-      analytical: 'Let me approach this logically.',
-      aggressive: 'Let\'s get this started! I\'m ready for action.',
-      cautious: 'I need to be careful here.',
-      social: 'Great! Let\'s all work together.',
-      observer: 'I\'ll be watching carefully.',
-      emotional: 'This is so exciting! I can feel the tension.',
-      suspicious: 'Something doesn\'t add up...',
-      adaptive: 'I\'ll adjust to whatever comes.',
-      facilitator: 'How can I help everyone here?',
-      careful: 'Let me think this through carefully.',
-      logical: 'The numbers will tell us the truth.',
-      supportive: 'I\'m here for the team!',
-      offensive: 'Time to go on the attack!',
-      latebloomer: 'I\'ll find my footing as we go.'
-    };
-    return intros[style] || 'I\'m ready to play.';
+    return this._pick(targets).id;
   }
 }
-
-// Global export for vanilla JS
-window.MockAI = MockAI;
