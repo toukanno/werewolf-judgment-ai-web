@@ -22,11 +22,11 @@
   --sans: 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', system-ui, sans-serif;
 }
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { height: 100%; overflow: hidden; }
-body { font-family: var(--sans); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+html { height: 100%; height: -webkit-fill-available; overflow: hidden; }
+body { height: 100%; min-height: -webkit-fill-available; overflow: hidden; font-family: var(--sans); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
 
 /* Screens */
-.screen { display: none; height: 100vh; overflow-y: auto; }
+.screen { display: none; height: 100vh; height: 100dvh; overflow-y: auto; padding-top: env(safe-area-inset-top, 0px); }
 .screen.active { display: flex; }
 
 /* Buttons */
@@ -69,7 +69,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); -web
 
 /* ===== GAME SCREEN ===== */
 #screen-game { flex-direction: column; overflow: hidden; }
-.game-container { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.game-container { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
 
 /* Top Header */
 .game-header { flex-shrink: 0; padding: 8px 16px; background: linear-gradient(180deg, #1a0a14, #120810); border-bottom: 1px solid var(--border); }
@@ -110,8 +110,14 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); -web
 .chat-bubble-left { background: var(--surface); border: 1px solid var(--border); border-radius: 2px 14px 14px 14px; }
 .chat-bubble-right { background: rgba(204,17,68,0.15); border: 1px solid rgba(204,17,68,0.3); border-radius: 14px 2px 14px 14px; }
 
-/* Action Area — fixed at bottom */
-.action-area { flex-shrink: 0; padding: 10px 12px; background: var(--surface); border-top: 1px solid var(--border); }
+/* Action Area — fixed at bottom with iOS safe area */
+.action-area {
+  flex-shrink: 0;
+  padding: 10px 12px;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
 
 .chat-input-container { display: flex; gap: 8px; align-items: center; }
 .chat-input { flex: 1; padding: 10px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 14px; font-family: var(--sans); }
@@ -198,4 +204,12 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); -web
   .role-cards { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
   .vote-grid, .target-grid { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); }
   .chat-bubble { font-size: 12px; }
+  .action-area { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); }
+}
+
+/* iPhone-specific: extra bottom padding for home indicator + Safari toolbar */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .action-area { padding-bottom: calc(env(safe-area-inset-bottom) + 12px); }
+  #screen-lobby { padding-bottom: calc(env(safe-area-inset-bottom) + 20px); }
+  #screen-result { padding-bottom: calc(env(safe-area-inset-bottom) + 20px); }
 }
