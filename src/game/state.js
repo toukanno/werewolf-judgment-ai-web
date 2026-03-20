@@ -137,10 +137,7 @@ class GameState {
     });
   }
 
-  // Backward-compatible alias
-  getAliveVillagers() {
-    return this.getAliveVillageTeam();
-  }
+  // (duplicate alias removed — see line 131)
 
   getAliveWerewolves() {
     return this.getAlive().filter(p => {

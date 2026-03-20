@@ -201,6 +201,72 @@ async function runTests() {
   const winResult = stateFlow.checkWinCondition();
   assert(winResult === null || typeof winResult === "string", "フロー: 勝敗判定が実行できる");
 
+  // === 罠師テスト ===
+  console.log("\n=== 罠師テスト ===");
+  const stateTrap = new GameState();
+  stateTrap.players = [
+    { id: "h", name: "H", role: "villager", isAlive: true, isHuman: true },
+    { id: "t", name: "T", role: "trapper", isAlive: true, isHuman: false },
+    { id: "w1", name: "W1", role: "werewolf", isAlive: true, isHuman: false },
+    { id: "w2", name: "W2", role: "werewolf", isAlive: true, isHuman: false },
+    { id: "v", name: "V", role: "villager", isAlive: true, isHuman: false },
+  ];
+  stateTrap.roleOverrides = {};
+  stateTrap.suspendedPlayers = [];
+  stateTrap.zombieIds = [];
+  stateTrap.sickWolves = [];
+  stateTrap.foxAlive = false;
+  stateTrap.elderUsedLife = false;
+  stateTrap.trapTarget = "t"; // trap set on self
+  const logicTrap = new GameLogic(stateTrap, new MockAI());
+  const trapResult = logicTrap.resolveAttack(["t"], { guarded: null, healed: null, events: [] });
+  assert(trapResult.events.some(e => e.type === 'trap_triggered'), "罠: 罠が発動する");
+  assert(trapResult.events.some(e => e.type === 'trap_kill_wolf'), "罠: 狼が死亡する");
+  assert(!stateTrap.getPlayerById("w1").isAlive || !stateTrap.getPlayerById("w2").isAlive, "罠: 少なくとも1匹の狼が死亡");
+
+  // === 狼キラーテスト ===
+  console.log("\n=== 狼キラーテスト ===");
+  const stateWK = new GameState();
+  stateWK.players = [
+    { id: "h", name: "H", role: "villager", isAlive: true, isHuman: true },
+    { id: "wk", name: "WK", role: "wolfKiller", isAlive: true, isHuman: false },
+    { id: "w1", name: "W1", role: "werewolf", isAlive: true, isHuman: false },
+    { id: "v", name: "V", role: "villager", isAlive: true, isHuman: false },
+  ];
+  stateWK.roleOverrides = {};
+  stateWK.suspendedPlayers = [];
+  stateWK.zombieIds = [];
+  stateWK.sickWolves = [];
+  stateWK.foxAlive = false;
+  stateWK.elderUsedLife = false;
+  stateWK.trapTarget = null;
+  const logicWK = new GameLogic(stateWK, new MockAI());
+  const wkResult = logicWK.resolveAttack(["wk"], { guarded: null, healed: null, events: [] });
+  assert(wkResult.events.some(e => e.type === 'wolfKiller_retaliate'), "狼キラー: 反撃イベント発生");
+  assert(!stateWK.getPlayerById("w1").isAlive, "狼キラー: 狼が死亡する");
+  assert(!stateWK.getPlayerById("wk").isAlive, "狼キラー: 自身も死亡する");
+
+  // === 処刑順序テスト ===
+  console.log("\n=== 処刑順序テスト ===");
+  const stateExec = new GameState();
+  stateExec.players = [
+    { id: "h", name: "H", role: "villager", isAlive: true, isHuman: true },
+    { id: "q", name: "Q", role: "queen", isAlive: true, isHuman: false },
+    { id: "w", name: "W", role: "werewolf", isAlive: true, isHuman: false },
+    { id: "v", name: "V", role: "villager", isAlive: true, isHuman: false },
+  ];
+  stateExec.roleOverrides = {};
+  stateExec.suspendedPlayers = [];
+  stateExec.loversIds = [];
+  stateExec.foxAlive = false;
+  stateExec.log = [];
+  stateExec.addLog = function(phase, msg) { this.log.push({phase, msg}); };
+  const logicExec = new GameLogic(stateExec, new MockAI());
+  logicExec.handleExecution("q");
+  assert(!stateExec.getPlayerById("q").isAlive, "処刑順序: 女王が死亡");
+  assert(!stateExec.getPlayerById("h").isAlive, "処刑順序: 村人も女王効果で死亡");
+  assert(stateExec.getPlayerById("w").isAlive, "処刑順序: 狼は女王効果で生存");
+
   // 結果
   console.log(`\n=== 結果: ${passed} passed, ${failed} failed ===`);
   process.exit(failed > 0 ? 1 : 0);

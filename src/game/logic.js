@@ -66,12 +66,12 @@ class GameLogic {
       }
     }
 
-    // Straw doll: choose someone to die (would be handled by UI)
+    // Kill the executed player first, then trigger side effects
+    this.state.killPlayer(playerId, 'execution');
 
     // Queen: all non-wolf, non-fox die
     if (roleId === 'queen') {
       const toKill = this.state.getAlive().filter(player =>
-        player.id !== playerId &&
         !this.state.isWerewolf(player.id) &&
         this.state.getEffectiveRole(player.id) !== 'fox'
       );
@@ -82,9 +82,6 @@ class GameLogic {
         this.state.addLog('処刑', `女王の効果により${toKill.length}人が死亡しました`, null);
       }
     }
-
-    // Kill the executed player
-    this.state.killPlayer(playerId, 'execution');
   }
 
   /**
@@ -281,10 +278,14 @@ class GameLogic {
         continue;
       }
 
-      // Trap kills attacking wolf
+      // Trap kills attacking wolves
       if (targetId === this.state.trapTarget) {
-        // Kill the attacking wolves instead
-        // This would need to be handled differently - for now mark trap activated
+        const attackingWolves = this.state.getAliveWerewolves();
+        for (const wolf of attackingWolves) {
+          this.state.killPlayer(wolf.id, 'trap');
+          killed.push(wolf.id);
+          events.push({ type: 'trap_kill_wolf', target: wolf.id });
+        }
         events.push({ type: 'trap_triggered', target: targetId });
         continue;
       }
@@ -323,10 +324,16 @@ class GameLogic {
         continue;
       }
 
-      // Wolf killer kills back
+      // Wolf killer kills back — attacking wolves die
       if (this.state.getEffectiveRole(targetId) === 'wolfKiller') {
+        const attackingWolves = this.state.getAliveWerewolves();
+        for (const wolf of attackingWolves) {
+          this.state.killPlayer(wolf.id, 'wolfKiller_retaliate');
+          killed.push(wolf.id);
+          events.push({ type: 'wolfKiller_kill', target: wolf.id });
+        }
         events.push({ type: 'wolfKiller_retaliate', target: targetId });
-        // Attacking wolves would die - handled elsewhere
+        // wolfKiller also dies from the attack
       }
 
       // Sick prevents next night wolf action
