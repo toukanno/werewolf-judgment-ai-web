@@ -180,13 +180,17 @@ JSON形式で応答してください: {"statement": "...", "reasoning": "..."}`
   /**
    * Get AI night action
    */
-  async getNightAction(player, state) {
+  async getNightAction(player, targets, state) {
     try {
       const role = ROLES[player.role];
       if (!role || !role.nightAction) return null;
 
-      const alive = state.getAlive().filter(p => p.id !== player.id);
-      const targetList = alive.map(p => p.name).join("、");
+      const availableTargets = Array.isArray(targets)
+        ? targets
+        : state.getAlive().filter(p => p.id !== player.id);
+      if (availableTargets.length === 0) return null;
+
+      const targetList = availableTargets.map(p => p.name).join("、");
       const ability = role.ability;
 
       let actionName = "";
@@ -207,14 +211,14 @@ JSON形式で応答してください: {"statement": "...", "reasoning": "..."}`
       const parsed = JSON.parse(raw);
 
       if (parsed.target) {
-        const target = alive.find(p => p.name === parsed.target);
-        return target ? target.id : alive[0].id;
+        const target = availableTargets.find(p => p.name === parsed.target);
+        return target ? target.id : availableTargets[0].id;
       }
-      return alive[0].id;
+      return availableTargets[0].id;
     } catch (error) {
       console.error("OpenRouter getNightAction error:", error);
       const mock = new MockAI();
-      return mock.getNightAction(player, state);
+      return mock.getNightAction(player, targets, state);
     }
   }
 }

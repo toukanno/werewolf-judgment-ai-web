@@ -37,7 +37,7 @@ const GameUI = {
 
     for (const player of players) {
       const isAlive = alivePlayers.some(p => p.id === player.id);
-      const isMe = player.isAI === false;
+      const isMe = player.isHuman === true;
       const role = ROLES[state.getEffectiveRole(player.id)];
       const roleIcon = role ? role.icon : '❓';
 
