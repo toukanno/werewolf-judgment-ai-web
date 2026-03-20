@@ -5,15 +5,14 @@ function showScreen(id) {
   if (screen) screen.classList.add("active");
 }
 
-// ロビー: 人数選択
 function selectPlayerCount(count) {
   document.querySelectorAll(".btn-count").forEach(b => b.classList.remove("active"));
-  document.querySelector(`[data-count="${count}"]`).classList.add("active");
+  const el = document.querySelector(`[data-count="${count}"]`);
+  if (el) el.classList.add("active");
   document.getElementById("composition-info").textContent = getCompositionText(count);
   window._selectedPlayerCount = count;
 }
 
-// ロビー: APIキーテスト
 async function testApiKey() {
   const key = document.getElementById("api-key").value.trim();
   const status = document.getElementById("api-key-status");
@@ -30,7 +29,7 @@ async function testApiKey() {
     status.className = "api-status ok";
     localStorage.setItem("werewolf_api_key", key);
   } else {
-    status.textContent = "✗ 接続失敗。キーを確認してください";
+    status.textContent = "✗ 接続失敗";
     status.className = "api-status error";
   }
 }

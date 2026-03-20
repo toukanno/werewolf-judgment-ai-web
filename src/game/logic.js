@@ -5,7 +5,6 @@ class GameLogic {
     this.ai = ai;
   }
 
-  // 投票処理: 最多得票者を返す
   tallyVotes(votes) {
     const counts = {};
     for (const targetId of Object.values(votes)) {
@@ -13,59 +12,54 @@ class GameLogic {
     }
     const maxVotes = Math.max(...Object.values(counts));
     const candidates = Object.keys(counts).filter(id => counts[id] === maxVotes);
-    // 同票ならランダム
     return candidates[Math.floor(Math.random() * candidates.length)];
   }
 
-  // 夜の処理
   resolveNight(actions) {
-    const result = { killed: null, guarded: null, divineResult: null, divineTarget: null };
+    const result = { killed: null, guarded: null, divineResult: null, divineTarget: null, mediumResult: null };
 
-    // 護衛対象
+    // Guard
     if (actions.guard) {
       result.guarded = actions.guard;
       this.state.lastGuardTarget = actions.guard;
     }
 
-    // 襲撃
+    // Attack
     if (actions.attack) {
       if (actions.attack === result.guarded) {
-        result.killed = null; // 護衛成功
+        result.killed = null; // Guard success
       } else {
         result.killed = actions.attack;
         this.state.killPlayer(actions.attack);
       }
     }
 
-    // 占い
+    // Divine
     if (actions.divine) {
       result.divineTarget = actions.divine;
       const target = this.state.getPlayerById(actions.divine);
       result.divineResult = target && ROLES[target.role].appearAsWerewolf ? "werewolf" : "village";
+      this.state.divinedPlayers[actions.divine] = result.divineResult;
+    }
+
+    // Medium - check last executed player
+    if (this.state.executedToday) {
+      const executed = this.state.getPlayerById(this.state.executedToday);
+      if (executed) {
+        const medResult = ROLES[executed.role].appearAsWerewolf ? "werewolf" : "village";
+        result.mediumResult = { playerId: this.state.executedToday, name: executed.name, result: medResult };
+        this.state.mediumResults.push(result.mediumResult);
+      }
     }
 
     return result;
   }
 
-  // AI投票を取得（モック）
-  async getAiVotes(alivePlayers) {
-    const votes = {};
-    for (const player of alivePlayers) {
-      if (player.isHuman) continue;
-      const targets = alivePlayers.filter(p => p.id !== player.id);
-      const response = await this.ai.getVote(player, targets, this.state);
-      votes[player.id] = response;
-    }
-    return votes;
-  }
-
-  // AI夜アクションを取得（モック）
   async getAiNightAction(player) {
     const alive = this.state.getAlive().filter(p => p.id !== player.id);
     return await this.ai.getNightAction(player, alive, this.state);
   }
 
-  // AI発言を取得
   async getAiStatement(player) {
     return await this.ai.getStatement(player, this.state);
   }

@@ -5,68 +5,74 @@ class GameState {
   reset() {
     this.players = [];
     this.day = 1;
-    this.phase = "day"; // "day" | "night" | "vote"
+    this.phase = "day";
     this.log = [];
     this.voteHistory = [];
     this.nightActions = {};
     this.lastGuardTarget = null;
     this.isGameOver = false;
     this.winner = null;
+    this.mediumResults = []; // 霊能結果の履歴
+    this.divinedPlayers = {}; // 占い済みプレイヤー {playerId: "werewolf"|"village"}
+    this.executedToday = null; // 今日処刑されたプレイヤーID
   }
 
   initPlayers(playerName, playerCount) {
     const comp = COMPOSITIONS[playerCount];
     if (!comp) throw new Error(`Invalid player count: ${playerCount}`);
 
-    // 役職リストを作成
     const roleList = [];
     for (const [roleId, count] of Object.entries(comp)) {
       for (let i = 0; i < count; i++) roleList.push(roleId);
     }
 
-    // シャッフル
+    // Fisher-Yates shuffle
     for (let i = roleList.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [roleList[i], roleList[j]] = [roleList[j], roleList[i]];
     }
 
-    // AIプレイヤーをシャッフルして選出
     const shuffledAI = [...AI_PLAYERS].sort(() => Math.random() - 0.5);
     const aiCount = playerCount - 1;
 
     this.players = [];
 
-    // 人間プレイヤーを最初に追加
+    // Human player
     this.players.push({
       id: "human",
       name: playerName,
-      avatar: "🎮",
       role: roleList[0],
       isHuman: true,
       isAlive: true,
       personality: null,
-      style: null
+      style: null,
+      avatarColor: "#ffd54f",
+      avatarBg: "#ff6f00",
+      initial: playerName.charAt(0) || "P"
     });
 
-    // AIプレイヤーを追加
+    // AI players
     for (let i = 0; i < aiCount; i++) {
       const ai = shuffledAI[i];
       this.players.push({
         id: ai.id,
         name: ai.name,
-        avatar: ai.avatar,
         role: roleList[i + 1],
         isHuman: false,
         isAlive: true,
         personality: ai.personality,
-        style: ai.style
+        style: ai.style,
+        avatarColor: ai.avatarColor,
+        avatarBg: ai.avatarBg,
+        initial: ai.initial
       });
     }
   }
 
   getAlive() { return this.players.filter(p => p.isAlive); }
-  getAliveVillagers() { return this.getAlive().filter(p => ROLES[p.role].team === "village"); }
+  getAliveVillageTeam() { return this.getAlive().filter(p => ROLES[p.role].team === "village"); }
   getAliveWerewolves() { return this.getAlive().filter(p => p.role === "werewolf"); }
+  getAliveWerewolfTeam() { return this.getAlive().filter(p => ROLES[p.role].team === "werewolf"); }
   getHuman() { return this.players.find(p => p.isHuman); }
   getPlayerById(id) { return this.players.find(p => p.id === id); }
 
@@ -81,7 +87,8 @@ class GameState {
 
   checkWinCondition() {
     const wolves = this.getAliveWerewolves().length;
-    const villagers = this.getAliveVillagers().length;
+    // Count village team only (not madman)
+    const villagers = this.getAlive().filter(p => ROLES[p.role].team === "village").length;
 
     if (wolves === 0) {
       this.isGameOver = true;
@@ -96,11 +103,9 @@ class GameState {
     return null;
   }
 
-  // --- localStorage 保存/復元 ---
-
+  // localStorage persistence
   static SAVE_KEY = "werewolf_game_save";
-  static SAVE_VERSION = 1;
-  static MAX_LOG_SAVE = 50;
+  static SAVE_VERSION = 2;
 
   save() {
     try {
@@ -110,15 +115,17 @@ class GameState {
         players: this.players,
         day: this.day,
         phase: this.phase,
-        log: this.log.slice(-GameState.MAX_LOG_SAVE),
+        log: this.log.slice(-60),
         voteHistory: this.voteHistory,
-        nightActions: this.nightActions,
         lastGuardTarget: this.lastGuardTarget,
         isGameOver: this.isGameOver,
-        winner: this.winner
+        winner: this.winner,
+        mediumResults: this.mediumResults,
+        divinedPlayers: this.divinedPlayers,
+        executedToday: this.executedToday
       };
       localStorage.setItem(GameState.SAVE_KEY, JSON.stringify(data));
-    } catch { /* 容量超過等は無視 */ }
+    } catch { }
   }
 
   load() {
@@ -131,15 +138,19 @@ class GameState {
         this.clearSave();
         return false;
       }
-      this.players = data.players;
-      this.day = data.day;
-      this.phase = data.phase;
-      this.log = data.log || [];
-      this.voteHistory = data.voteHistory || [];
-      this.nightActions = data.nightActions || {};
-      this.lastGuardTarget = data.lastGuardTarget || null;
-      this.isGameOver = data.isGameOver || false;
-      this.winner = data.winner || null;
+      Object.assign(this, {
+        players: data.players,
+        day: data.day,
+        phase: data.phase,
+        log: data.log || [],
+        voteHistory: data.voteHistory || [],
+        lastGuardTarget: data.lastGuardTarget || null,
+        isGameOver: data.isGameOver || false,
+        winner: data.winner || null,
+        mediumResults: data.mediumResults || [],
+        divinedPlayers: data.divinedPlayers || {},
+        executedToday: data.executedToday || null,
+      });
       return true;
     } catch {
       this.clearSave();
@@ -148,10 +159,7 @@ class GameState {
   }
 
   clearSave() {
-    try {
-      if (typeof localStorage === "undefined") return;
-      localStorage.removeItem(GameState.SAVE_KEY);
-    } catch { /* 無視 */ }
+    try { if (typeof localStorage !== "undefined") localStorage.removeItem(GameState.SAVE_KEY); } catch { }
   }
 
   static hasSavedGame() {

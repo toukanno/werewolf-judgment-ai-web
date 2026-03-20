@@ -1,4 +1,4 @@
-// OpenRouter API連携（将来実装）
+// OpenRouter API連携
 class OpenRouterAI {
   constructor(apiKey) {
     this.apiKey = apiKey;
@@ -47,7 +47,6 @@ JSONで応答してください: {"action": "...", "target": "...", "statement":
       const parsed = JSON.parse(raw);
       return parsed.statement || raw;
     } catch {
-      // フォールバック: モックAI
       const mock = new MockAI();
       return mock.getStatement(player, state);
     }
@@ -82,15 +81,12 @@ JSONで応答してください: {"action": "...", "target": "...", "statement":
     }
   }
 
-  // APIキーテスト
   static async testConnection(apiKey) {
     try {
       const res = await fetch("https://openrouter.ai/api/v1/models", {
         headers: { "Authorization": `Bearer ${apiKey}` }
       });
       return res.ok;
-    } catch {
-      return false;
-    }
+    } catch { return false; }
   }
 }
