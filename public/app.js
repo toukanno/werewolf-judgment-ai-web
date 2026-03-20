@@ -222,24 +222,14 @@ async function runDayPhase() {
     gameState.suspendedPlayers = [];
   }
 
-  // AI statements — 1-2 second intervals
+  // Human persistent discussion — show input IMMEDIATELY, AI speaks in background
   const alive = gameState.getAlive();
-  let firstAi = true;
-  for (const player of alive) {
-    if (player.isHuman) continue;
-    await sleep(firstAi ? (800 + Math.random() * 400) : (1000 + Math.random() * 1000));
-    firstAi = false;
-    const stmt = await gameLogic.getAiStatement(player);
-    addMsg(stmt, "ai", player);
-    gameState.addLog("statement", stmt, player.name);
-  }
-
-  // Human persistent discussion
   const isDay1 = gameState.day === 1;
   const proceedLabel = isDay1 ? "🌙 夜へ進む" : "⚔ 投票に進む ▶";
 
   if (human.isAlive) {
-    await new Promise(resolve => {
+    // Show discussion input first so player can type immediately
+    const discussionPromise = new Promise(resolve => {
       GameUI.showDiscussionInput(
         async (text) => {
           addMsg(text, "you", human);
@@ -249,7 +239,7 @@ async function runDayPhase() {
             addMsg(`🎯 禁句「${gameState.talkativeWolfWord}」を言ってしまった！`, "danger");
             gameState.talkativeWolfWord = null;
           }
-          // AI reactions — lock UI while reacting
+          // AI reactions
           GameUI.setDiscussionSendLocked(true);
           const reactors = gameState.getAlive()
             .filter(p => !p.isHuman)
@@ -266,7 +256,33 @@ async function runDayPhase() {
         proceedLabel
       );
     });
+
+    // AI statements run in background while player can already interact
+    (async () => {
+      let firstAi = true;
+      for (const player of alive) {
+        if (player.isHuman) continue;
+        await sleep(firstAi ? (800 + Math.random() * 400) : (1000 + Math.random() * 1000));
+        firstAi = false;
+        const stmt = await gameLogic.getAiStatement(player);
+        addMsg(stmt, "ai", player);
+        gameState.addLog("statement", stmt, player.name);
+      }
+    })();
+
+    // Wait for player to press proceed button
+    await discussionPromise;
   } else {
+    // Dead player: show AI statements then continue
+    let firstAi = true;
+    for (const player of alive) {
+      if (player.isHuman) continue;
+      await sleep(firstAi ? (800 + Math.random() * 400) : (1000 + Math.random() * 1000));
+      firstAi = false;
+      const stmt = await gameLogic.getAiStatement(player);
+      addMsg(stmt, "ai", player);
+      gameState.addLog("statement", stmt, player.name);
+    }
     addMsg("（あなたは死亡しています。観戦中…）");
     await waitForContinue("次へ");
   }
