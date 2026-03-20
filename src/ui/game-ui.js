@@ -131,12 +131,30 @@ const GameUI = {
    * onProceed is called when the player clicks the proceed button.
    */
   showDiscussionInput(onMessage, onProceed, proceedLabel = '⚔ 投票に進む ▶') {
+    // Build player chips for quick mention
+    let playerChipsHtml = '';
+    if (typeof gameState !== 'undefined' && gameState.getAlive) {
+      const alivePlayers = gameState.getAlive();
+      playerChipsHtml = '<div id="player-mention-bar" style="display:flex;gap:6px;overflow-x:auto;padding:4px 2px;-webkit-overflow-scrolling:touch;">';
+      for (const p of alivePlayers) {
+        if (p.isHuman) continue;
+        const color = p.avatarColor || '#ccc';
+        const bg = p.avatarBg || '#333';
+        playerChipsHtml += `<button class="mention-chip" data-name="${this.escapeHtml(p.name)}" style="flex-shrink:0;display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:16px;border:1px solid ${color}40;background:${color}15;color:${color};font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">
+          <span style="width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,${bg},${color}30);display:flex;align-items:center;justify-content:center;font-size:10px;color:${color};border:1px solid ${color}50;">${p.name.charAt(0)}</span>
+          ${this.escapeHtml(p.name)}
+        </button>`;
+      }
+      playerChipsHtml += '</div>';
+    }
+
     const html = `
       <div id="discussion-ui" style="display:flex;flex-direction:column;gap:6px;">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:0 2px;">
           <span style="font-size:11px;color:var(--text2);">議論時間</span>
           <span id="discussion-timer" style="font-size:13px;font-weight:700;color:var(--success);font-variant-numeric:tabular-nums;">120秒</span>
         </div>
+        ${playerChipsHtml}
         <div class="chat-input-container">
           <button id="co-btn" class="btn co-btn">CO</button>
           <input type="text" id="chat-input" class="chat-input" placeholder="発言を入力...">
@@ -235,6 +253,18 @@ const GameUI = {
         if (!proceedBtn.disabled) proceed();
       });
     }
+
+    // Mention chips: tap to insert @name into input
+    document.querySelectorAll('.mention-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        if (input) {
+          const name = chip.dataset.name;
+          const curVal = input.value;
+          input.value = curVal + (curVal && !curVal.endsWith(' ') ? ' ' : '') + '@' + name + ' ';
+          input.focus();
+        }
+      });
+    });
 
     input.focus();
   },
