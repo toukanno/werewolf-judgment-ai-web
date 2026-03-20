@@ -90,7 +90,8 @@ class GameLogic {
    */
   resolveNight(actions) {
     const result = {
-      killed: [],
+      killed: null,
+      killedIds: [],
       guarded: null,
       trapped: null,
       healed: [],
@@ -145,7 +146,8 @@ class GameLogic {
     }
     if (attackTargets && attackTargets.length > 0) {
       const attackResult = this.resolveAttack(attackTargets, result);
-      result.killed.push(...attackResult.killed);
+      result.killedIds.push(...attackResult.killed);
+      result.killed = result.killedIds.length <= 1 ? (result.killedIds[0] || null) : result.killedIds[0];
       result.events.push(...attackResult.events);
     }
 
@@ -209,11 +211,13 @@ class GameLogic {
     }
 
     // 12. Witch potions
-    if (actions.witchRevive && this.state.witchPotions.revive && result.killed.length > 0) {
+    if (actions.witchRevive && this.state.witchPotions.revive && result.killedIds.length > 0) {
       const targetId = actions.witchRevive;
       this.state.witchPotions.revive = false;
-      if (result.killed.includes(targetId)) {
+      if (result.killedIds.includes(targetId)) {
         this.state.revivePlayer(targetId);
+        result.killedIds = result.killedIds.filter(id => id !== targetId);
+        result.killed = result.killedIds.length <= 1 ? (result.killedIds[0] || null) : result.killedIds[0];
         result.events.push({ type: 'witch_revive', target: targetId });
       }
     }

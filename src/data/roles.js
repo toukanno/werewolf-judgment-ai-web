@@ -1666,264 +1666,30 @@ function getTeamLabel(team) {
   return TEAM_INFO[team]?.name || team;
 }
 
-// Preset compositions for different player counts
+// Preset compositions for different player counts.
+// Keep these presets limited to the roles that are fully supported by the
+// current day/night flow so default games remain playable and deterministic.
 const DEFAULT_PRESETS = {
-  5: {
-    name: '5人村',
-    composition: {
-      villager: 2,
-      seer: 1,
-      werewolf: 1,
-      madman: 1
-    }
-  },
-
-  6: {
-    name: '6人村',
-    composition: {
-      villager: 2,
-      seer: 1,
-      knight: 1,
-      werewolf: 1,
-      madman: 1
-    }
-  },
-
-  7: {
-    name: '7人村',
-    composition: {
-      villager: 3,
-      seer: 1,
-      knight: 1,
-      werewolf: 1,
-      madman: 1
-    }
-  },
-
-  8: {
-    name: '8人村',
-    composition: {
-      villager: 3,
-      seer: 1,
-      knight: 1,
-      medium: 1,
-      werewolf: 1,
-      madman: 1
-    }
-  },
-
-  9: {
-    name: '9人村',
-    composition: {
-      villager: 3,
-      seer: 1,
-      knight: 1,
-      medium: 1,
-      werewolf: 2,
-      madman: 1
-    }
-  },
-
-  10: {
-    name: '10人村',
-    composition: {
-      villager: 4,
-      seer: 1,
-      knight: 1,
-      medium: 1,
-      werewolf: 2,
-      madman: 1
-    }
-  },
-
-  11: {
-    name: '11人村',
-    composition: {
-      villager: 4,
-      seer: 1,
-      knight: 1,
-      medium: 1,
-      sage: 1,
-      werewolf: 2,
-      madman: 1
-    }
-  },
-
-  12: {
-    name: '12人村',
-    composition: {
-      villager: 4,
-      seer: 1,
-      knight: 1,
-      medium: 1,
-      sage: 1,
-      doctor: 1,
-      werewolf: 2,
-      madman: 1
-    }
-  },
-
-  13: {
-    name: '13人村',
-    composition: {
-      villager: 3,
-      seer: 1,
-      knight: 1,
-      medium: 1,
-      sage: 1,
-      detective: 1,
-      doctor: 1,
-      werewolf: 2,
-      fox: 1,
-      madman: 1
-    }
-  },
-
-  14: {
-    name: '14人村',
-    composition: {
-      villager: 4,
-      seer: 1,
-      knight: 1,
-      medium: 1,
-      sage: 1,
-      doctor: 1,
-      paladin: 1,
-      werewolf: 2,
-      wiseWolf: 1,
-      fox: 1,
-      madman: 1
-    }
-  },
-
-  15: {
-    name: '15人村',
-    composition: {
-      villager: 4,
-      seer: 1,
-      knight: 1,
-      medium: 1,
-      sage: 1,
-      doctor: 1,
-      witch: 1,
-      housekeeper: 1,
-      werewolf: 2,
-      wiseWolf: 1,
-      fox: 1,
-      madman: 1
-    }
-  },
-
-  16: {
-    name: '16人村',
-    composition: {
-      villager: 4,
-      seer: 1,
-      knight: 1,
-      medium: 1,
-      sage: 1,
-      doctor: 1,
-      witch: 1,
-      assassin: 1,
-      housekeeper: 1,
-      werewolf: 2,
-      wiseWolf: 1,
-      bigWolf: 1,
-      fox: 1,
-      madman: 1
-    }
-  },
-
-  17: {
-    name: '17人村',
-    composition: {
-      villager: 5,
-      seer: 1,
-      knight: 1,
-      medium: 1,
-      sage: 1,
-      doctor: 1,
-      witch: 1,
-      assassin: 1,
-      paladin: 1,
-      werewolf: 2,
-      wiseWolf: 1,
-      bigWolf: 1,
-      fox: 1,
-      immoralist: 1,
-      madman: 1
-    }
-  },
-
-  18: {
-    name: '18人村',
-    composition: {
-      villager: 5,
-      seer: 1,
-      knight: 1,
-      medium: 1,
-      sage: 1,
-      doctor: 1,
-      witch: 1,
-      assassin: 1,
-      trapper: 1,
-      detective: 1,
-      werewolf: 2,
-      wiseWolf: 1,
-      bigWolf: 1,
-      fox: 1,
-      immoralist: 1,
-      madman: 1
-    }
-  },
-
-  19: {
-    name: '19人村',
-    composition: {
-      villager: 5,
-      seer: 1,
-      knight: 1,
-      medium: 1,
-      sage: 1,
-      doctor: 1,
-      witch: 1,
-      assassin: 1,
-      trapper: 1,
-      mayor: 1,
-      housekeeper: 1,
-      werewolf: 2,
-      wiseWolf: 1,
-      bigWolf: 1,
-      fox: 1,
-      immoralist: 1,
-      madman: 1
-    }
-  },
-
-  20: {
-    name: '20人村',
-    composition: {
-      villager: 5,
-      seer: 1,
-      knight: 1,
-      medium: 1,
-      sage: 1,
-      doctor: 1,
-      witch: 1,
-      assassin: 1,
-      trapper: 1,
-      mayor: 1,
-      detective: 1,
-      paladin: 1,
-      werewolf: 3,
-      wiseWolf: 1,
-      bigWolf: 1,
-      fox: 1,
-      immoralist: 1,
-      madman: 1
-    }
-  }
+  5: { name: '5人村', composition: { villager: 2, seer: 1, werewolf: 2 } },
+  6: { name: '6人村', composition: { villager: 3, seer: 1, werewolf: 2 } },
+  7: { name: '7人村', composition: { villager: 3, seer: 1, knight: 1, werewolf: 2 } },
+  8: { name: '8人村', composition: { villager: 4, seer: 1, knight: 1, werewolf: 2 } },
+  9: { name: '9人村', composition: { villager: 4, seer: 1, knight: 1, werewolf: 3 } },
+  10: { name: '10人村', composition: { villager: 4, seer: 1, knight: 1, medium: 1, werewolf: 3 } },
+  11: { name: '11人村', composition: { villager: 5, seer: 1, knight: 1, medium: 1, werewolf: 3 } },
+  12: { name: '12人村', composition: { villager: 5, seer: 1, knight: 1, medium: 1, baker: 1, werewolf: 3 } },
+  13: { name: '13人村', composition: { villager: 6, seer: 1, knight: 1, medium: 1, baker: 1, werewolf: 3 } },
+  14: { name: '14人村', composition: { villager: 6, seer: 1, knight: 1, medium: 1, baker: 1, werewolf: 4 } },
+  15: { name: '15人村', composition: { villager: 7, seer: 1, knight: 1, medium: 1, baker: 1, werewolf: 4 } },
+  16: { name: '16人村', composition: { villager: 8, seer: 1, knight: 1, medium: 1, baker: 1, werewolf: 4 } },
+  17: { name: '17人村', composition: { villager: 9, seer: 1, knight: 1, medium: 1, baker: 1, werewolf: 4 } },
+  18: { name: '18人村', composition: { villager: 9, seer: 1, knight: 1, medium: 1, baker: 1, werewolf: 5 } },
+  19: { name: '19人村', composition: { villager: 10, seer: 1, knight: 1, medium: 1, baker: 1, werewolf: 5 } },
+  20: { name: '20人村', composition: { villager: 11, seer: 1, knight: 1, medium: 1, baker: 1, werewolf: 5 } }
 };
+
+// Backward-compatible alias used by older tests/helpers.
+const COMPOSITIONS = DEFAULT_PRESETS;
 
 /**
  * Get composition text for display
