@@ -209,9 +209,11 @@ async function runDayPhase() {
   }
 
   // Human input
+  let humanText = "";
   if (human.isAlive) {
     await new Promise(resolve => {
       GameUI.showChatInput((text) => {
+        humanText = text;
         GameUI.addMessage(text, null, "you", human);
         gameState.addLog("statement", text, human.name);
 
@@ -226,6 +228,21 @@ async function runDayPhase() {
         resolve();
       });
     });
+
+    // AI reactions to human's message (1-2 AIs respond after 2-3 seconds)
+    if (humanText) {
+      const aliveAI = gameState.getAlive().filter(p => !p.isHuman);
+      const reactorCount = Math.min(2, aliveAI.length);
+      const reactors = aliveAI.sort(() => Math.random() - 0.5).slice(0, reactorCount);
+      for (const reactor of reactors) {
+        await sleep(1500 + Math.random() * 1500);
+        const reaction = await gameLogic.getAiReaction(reactor, humanText);
+        if (reaction) {
+          GameUI.addMessage(reaction, null, "ai", reactor);
+          gameState.addLog("statement", reaction, reactor.name);
+        }
+      }
+    }
   } else {
     GameUI.addMessage("（あなたは死亡しています。観戦中…）", null, "system");
     await new Promise(resolve => {

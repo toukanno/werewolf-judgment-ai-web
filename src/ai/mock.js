@@ -281,6 +281,56 @@ class MockAI {
     return this._pick(targets).id;
   }
 
+  async getReaction(player, humanMessage, state) {
+    await new Promise(r => setTimeout(r, 200 + Math.random() * 300));
+
+    const roleData = ROLES[player.role];
+    const team = roleData ? roleData.team : "village";
+    const alive = state.getAlive();
+    const target = this._randomTarget(alive, player.id);
+    const targetName = target ? target.name : "誰か";
+    const human = state.getHuman();
+    const humanName = human ? human.name : "プレイヤー";
+    const msgFragment = humanMessage.length > 15 ? humanMessage.substring(0, 15) + "…" : humanMessage;
+
+    const agree = [
+      `${humanName}さんの意見、なるほどと思いました。`,
+      `確かに${humanName}さんの言う通りかもしれませんね。`,
+      `「${msgFragment}」という点は私も気になっていました。`,
+      `${humanName}さんに同意します。${targetName}さんも怪しいと思っていました。`,
+      `${humanName}さんの見方は鋭いですね。その線で考えましょう。`,
+    ];
+    const disagree = [
+      `${humanName}さん、それは少し違うと思います。`,
+      `「${msgFragment}」という発言、引っかかりますね。`,
+      `${humanName}さんの意見は分かりますが、私は${targetName}さんが気になります。`,
+      `ちょっと待ってください。${humanName}さんの発言には矛盾を感じます。`,
+      `${humanName}さん、そう言えるのは人狼だからでは？`,
+    ];
+    const neutral = [
+      `${humanName}さんの発言、参考になります。`,
+      `なるほど…少し考えてみます。`,
+      `${humanName}さん、もう少し詳しく聞かせてもらえますか？`,
+      `その視点はありますね。ただ、私はまだ判断できていません。`,
+    ];
+
+    let text;
+    if (team === "werewolf") {
+      // Wolves lean toward suspicion of the human
+      text = Math.random() < 0.65 ? this._pick(disagree) : this._pick(neutral);
+    } else {
+      const r = Math.random();
+      if (r < 0.5) text = this._pick(agree);
+      else if (r < 0.8) text = this._pick(disagree);
+      else text = this._pick(neutral);
+    }
+
+    const mod = this.styleModifiers[player.style] || {};
+    if (mod.prefix && Math.random() > 0.5 && !text.startsWith(mod.prefix)) text = mod.prefix + text;
+
+    return text.replace(/{target}/g, targetName);
+  }
+
   async getNightAction(player, targets, state) {
     await new Promise(r => setTimeout(r, 200 + Math.random() * 400));
 

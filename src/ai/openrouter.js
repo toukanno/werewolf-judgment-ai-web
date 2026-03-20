@@ -178,6 +178,28 @@ JSON形式で応答してください: {"statement": "...", "reasoning": "..."}`
   }
 
   /**
+   * Get AI reaction to human player's statement
+   */
+  async getReaction(player, humanMessage, state) {
+    try {
+      const human = state.getHuman();
+      const humanName = human ? human.name : "プレイヤー";
+      const prompt = this._buildPrompt(
+        player,
+        state,
+        `${humanName}が「${humanMessage}」と発言しました。この発言に対して自然に反応してください（同意・反論・質問など1〜2文）。statement に反応内容を入れてください。`
+      );
+      const raw = await this._request([{ role: "user", content: prompt }]);
+      const parsed = JSON.parse(raw);
+      return parsed.statement || raw;
+    } catch (error) {
+      console.error("OpenRouter getReaction error:", error);
+      const mock = new MockAI();
+      return mock.getReaction(player, humanMessage, state);
+    }
+  }
+
+  /**
    * Get AI night action
    */
   async getNightAction(player, targets, state) {

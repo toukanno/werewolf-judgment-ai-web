@@ -380,4 +380,11 @@ class GameLogic {
   async getAiStatement(player) {
     return await this.ai.getStatement(player, this.state);
   }
+
+  /**
+   * Get AI reaction to human player's message
+   */
+  async getAiReaction(player, humanMessage) {
+    return await this.ai.getReaction(player, humanMessage, this.state);
+  }
 }
