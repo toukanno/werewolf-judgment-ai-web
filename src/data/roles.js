@@ -1782,7 +1782,7 @@ const DEFAULT_PRESETS = {
   14: {
     name: '14人村',
     composition: {
-      villager: 4,
+      villager: 3,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -1799,7 +1799,7 @@ const DEFAULT_PRESETS = {
   15: {
     name: '15人村',
     composition: {
-      villager: 4,
+      villager: 3,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -1817,7 +1817,7 @@ const DEFAULT_PRESETS = {
   16: {
     name: '16人村',
     composition: {
-      villager: 4,
+      villager: 2,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -1837,7 +1837,7 @@ const DEFAULT_PRESETS = {
   17: {
     name: '17人村',
     composition: {
-      villager: 5,
+      villager: 2,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -1858,7 +1858,7 @@ const DEFAULT_PRESETS = {
   18: {
     name: '18人村',
     composition: {
-      villager: 5,
+      villager: 2,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -1880,7 +1880,7 @@ const DEFAULT_PRESETS = {
   19: {
     name: '19人村',
     composition: {
-      villager: 5,
+      villager: 2,
       seer: 1,
       knight: 1,
       medium: 1,
@@ -1903,7 +1903,7 @@ const DEFAULT_PRESETS = {
   20: {
     name: '20人村',
     composition: {
-      villager: 5,
+      villager: 1,
       seer: 1,
       knight: 1,
       medium: 1,
