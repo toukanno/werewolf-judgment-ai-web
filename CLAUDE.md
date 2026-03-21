@@ -47,23 +47,18 @@ src/
     useGameState.ts      # useReducer game state management
     useAI.ts             # AI statement/vote/night action orchestration
   ai/
-    openrouter.js        # Multi-provider API client (Groq/OpenRouter/OpenAI)
+    openrouter.js        # Multi-provider API client (Groq/OpenRouter/OpenAI/Anthropic)
     mock.js              # Offline pattern-based AI
     image-prompt-builder.js
   game/
     state.js             # GameState class (players, phases, persistence)
     logic.js             # GameLogic class (voting, night resolution, role interactions)
   data/
-    roles.js             # 121 role definitions + presets (5-20 players)
+    roles.js             # 122 role definitions + presets (5-20 players)
     players.js           # 19 AI player profiles with personalities
-    roles.json / players.json
-  ui/                    # Legacy (unused by React app)
-    screens.js
-    game-ui.js
 test/
   game-test.cjs          # 33-assertion headless test suite
   image-prompt-builder-test.js
-legacy/                  # Old vanilla JS files (pre-React)
 docs/
   plan.md
 ```
