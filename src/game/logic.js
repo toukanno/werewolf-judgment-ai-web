@@ -66,6 +66,16 @@ class GameLogic {
       }
     }
 
+    // Straw doll: choose someone to drag down (AI auto-selects randomly)
+    if (roleId === 'strawDoll') {
+      const others = this.state.getAlive().filter(player => player.id !== playerId);
+      if (others.length > 0) {
+        const victim = others[Math.floor(Math.random() * others.length)];
+        this.state.killPlayer(victim.id, 'strawDoll');
+        this.state.addLog('処刑', `わら人形の効果により${victim.name}が道連れになりました`, null);
+      }
+    }
+
     // Kill the executed player first, then trigger side effects
     this.state.killPlayer(playerId, 'execution');
 
@@ -137,15 +147,21 @@ class GameLogic {
     }
 
     // 5. Resolve attack with all interactions
-    // Normalize attack to array (may be string from a single wolf)
-    let attackTargets = actions.attack;
-    if (attackTargets && !Array.isArray(attackTargets)) {
-      attackTargets = [attackTargets];
-    }
-    if (attackTargets && attackTargets.length > 0) {
-      const attackResult = this.resolveAttack(attackTargets, result);
-      result.killed.push(...attackResult.killed);
-      result.events.push(...attackResult.events);
+    // If wolves are sick from previous night, skip their attack entirely
+    if (this.state.sickWolves.length > 0) {
+      result.events.push({ type: 'sick_skip', targets: [...this.state.sickWolves] });
+      this.state.sickWolves = [];
+    } else {
+      // Normalize attack to array (may be string from a single wolf)
+      let attackTargets = actions.attack;
+      if (attackTargets && !Array.isArray(attackTargets)) {
+        attackTargets = [attackTargets];
+      }
+      if (attackTargets && attackTargets.length > 0) {
+        const attackResult = this.resolveAttack(attackTargets, result);
+        result.killed.push(...attackResult.killed);
+        result.events.push(...attackResult.events);
+      }
     }
 
     // 6. Divine (seer)
@@ -336,9 +352,14 @@ class GameLogic {
         // wolfKiller also dies from the attack
       }
 
-      // Sick prevents next night wolf action
+      // Sick prevents next night wolf action — store the attacking wolves' IDs
       if (this.state.getEffectiveRole(targetId) === 'sick') {
-        this.state.sickWolves.push(targetId);
+        const attackingWolves = this.state.getAliveWerewolves();
+        for (const wolf of attackingWolves) {
+          if (!this.state.sickWolves.includes(wolf.id)) {
+            this.state.sickWolves.push(wolf.id);
+          }
+        }
         events.push({ type: 'sick_effect', target: targetId });
       }
 
