@@ -582,14 +582,61 @@ const GameUI = {
   },
 
   /**
-   * Simple markdown rendering for **bold** and *italic*
+   * Markdown rendering supporting bold, italic, headings, code, lists, blockquotes, and links
    */
   renderMarkdown(content) {
     if (!content) return '';
 
-    return this.escapeHtml(content)
+    const escaped = this.escapeHtml(content);
+
+    // Process line by line for block-level elements
+    const lines = escaped.split('\n');
+    const processed = [];
+    let inList = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+
+      // Headings: # / ## / ###
+      const headingMatch = line.match(/^(#{1,3})\s+(.+)$/);
+      if (headingMatch) {
+        if (inList) { processed.push('</ul>'); inList = false; }
+        const level = headingMatch[1].length;
+        processed.push(`<h${level}>${headingMatch[2]}</h${level}>`);
+        continue;
+      }
+
+      // Blockquote: > text
+      const quoteMatch = line.match(/^&gt;\s?(.*)$/);
+      if (quoteMatch) {
+        if (inList) { processed.push('</ul>'); inList = false; }
+        processed.push(`<blockquote>${quoteMatch[1]}</blockquote>`);
+        continue;
+      }
+
+      // List item: - text
+      const listMatch = line.match(/^-\s+(.+)$/);
+      if (listMatch) {
+        if (!inList) { processed.push('<ul>'); inList = true; }
+        processed.push(`<li>${listMatch[1]}</li>`);
+        continue;
+      } else if (inList) {
+        processed.push('</ul>');
+        inList = false;
+      }
+
+      // Regular line
+      processed.push(line);
+    }
+
+    if (inList) processed.push('</ul>');
+
+    // Join and apply inline formatting
+    return processed.join('\n')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
       .replace(/\n/g, '<br>');
   },
 
