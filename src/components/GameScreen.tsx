@@ -26,6 +26,7 @@ export function GameScreen({ game, onGameEnd }: Props) {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const aiRef = useRef<any>(null);
 
   const ai = useAI({
     gameState,
@@ -35,6 +36,7 @@ export function GameScreen({ game, onGameEnd }: Props) {
     setSpeakerIndex,
     addSystemMessage,
   });
+  aiRef.current = ai;
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -46,39 +48,76 @@ export function GameScreen({ game, onGameEnd }: Props) {
     if (state.phase === 'day' && !aiStatementsStarted && !state.isGameOver && gameState) {
       setAiStatementsStarted(true);
       addSystemMessage(`【${state.day}日目 - 昼】議論の時間です`);
-      ai.runAiStatements();
+      aiRef.current.runAiStatements();
     }
-  }, [state.phase, state.day, aiStatementsStarted]);
+  }, [state.phase, state.day, aiStatementsStarted, state.isGameOver, gameState, addSystemMessage]);
+
+  // Is the human player alive?
+  const human = gameState?.getHuman();
+  const humanAlive = human?.isAlive ?? false;
+
+  // Auto-advance when human is dead
+  useEffect(() => {
+    if (!gameState || state.isGameOver || humanAlive) return;
+
+    if (state.phase === 'day' && !isProcessing) {
+      // Dead human: auto-advance to vote after AI statements finish
+      if (!state.isAiSpeaking && aiStatementsStarted) {
+        const timer = setTimeout(() => {
+          handleAdvanceToVote();
+        }, 2000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [state.phase, humanAlive, state.isAiSpeaking, aiStatementsStarted, isProcessing, state.isGameOver]);
+
+  useEffect(() => {
+    if (!gameState || state.isGameOver || humanAlive) return;
+
+    if (state.phase === 'vote' && !isProcessing) {
+      // Dead human: auto-vote
+      handleAutoVote();
+    }
+  }, [state.phase, humanAlive, isProcessing, state.isGameOver]);
+
+  useEffect(() => {
+    if (!gameState || state.isGameOver || humanAlive) return;
+
+    if (state.phase === 'night' && !isProcessing) {
+      // Dead human: auto-advance night
+      handleNightConfirm();
+    }
+  }, [state.phase, humanAlive, isProcessing, state.isGameOver]);
 
   const handleSendMessage = useCallback(async () => {
     if (!inputText.trim() || !gameState) return;
-    const human = gameState.getHuman();
-    if (!human) return;
+    const h = gameState.getHuman();
+    if (!h || !h.isAlive) return;
 
     const msg: ChatMessage = {
       id: `msg_${Date.now()}`,
-      sender: human.id,
-      senderName: human.name,
+      sender: h.id,
+      senderName: h.name,
       content: inputText.trim(),
       isHuman: true,
-      avatarColor: human.avatarColor,
-      avatarBg: human.avatarBg,
-      initial: human.initial,
+      avatarColor: h.avatarColor,
+      avatarBg: h.avatarBg,
+      initial: h.initial,
       type: 'statement',
     };
     addMessage(msg);
+    const text = inputText.trim();
     setInputText('');
     setHumanSpoken(true);
 
-    // Get AI reactions
-    await ai.getAiReactions(inputText.trim());
-  }, [inputText, gameState, addMessage, ai]);
+    await aiRef.current.getAiReactions(text);
+  }, [inputText, gameState, addMessage]);
 
   const handleCO = useCallback(async (type: string) => {
     if (!gameState) return;
-    const human = gameState.getHuman();
-    if (!human) return;
-    const role = ROLES[human.role];
+    const h = gameState.getHuman();
+    if (!h || !h.isAlive) return;
+    const role = ROLES[h.role];
 
     let coText = '';
     if (type === 'role') {
@@ -91,152 +130,201 @@ export function GameScreen({ game, onGameEnd }: Props) {
 
     const msg: ChatMessage = {
       id: `msg_${Date.now()}`,
-      sender: human.id,
-      senderName: human.name,
+      sender: h.id,
+      senderName: h.name,
       content: coText,
       isHuman: true,
-      avatarColor: human.avatarColor,
-      avatarBg: human.avatarBg,
-      initial: human.initial,
+      avatarColor: h.avatarColor,
+      avatarBg: h.avatarBg,
+      initial: h.initial,
       type: 'statement',
     };
     addMessage(msg);
     setHumanSpoken(true);
-    await ai.getAiReactions(coText);
-  }, [gameState, addMessage, ai]);
+    await aiRef.current.getAiReactions(coText);
+  }, [gameState, addMessage]);
 
   const handleAdvanceToVote = useCallback(() => {
-    ai.cancel();
+    aiRef.current.cancel();
     setPhase('vote');
     setVoteTarget(null);
     addSystemMessage('【投票フェーズ】処刑する人を選んでください');
-  }, [ai, setPhase, addSystemMessage]);
+  }, [setPhase, addSystemMessage]);
+
+  const handleAutoVote = useCallback(async () => {
+    if (!gameState || !gameLogic) return;
+    setIsProcessing(true);
+
+    try {
+      addSystemMessage('（あなたは死亡しているため、観戦中です）');
+
+      const aiVotes = await aiRef.current.getAiVotes();
+      const executed = gameLogic.tallyVotes(aiVotes);
+      if (executed) {
+        const executedPlayer = gameState.getPlayerById(executed);
+        addSystemMessage(`投票の結果、${executedPlayer?.name || '???'}が処刑されました`);
+        gameLogic.handleExecution(executed);
+        gameState.save();
+      }
+
+      const winner = gameState.checkWinCondition();
+      if (winner) {
+        setGameOver(winner);
+        setTimeout(onGameEnd, 1500);
+        setIsProcessing(false);
+        return;
+      }
+
+      setPhase('night');
+      setNightTarget(null);
+      addSystemMessage('【夜】');
+    } catch (e) {
+      console.error('Auto vote error:', e);
+      addSystemMessage('エラーが発生しました。投票をスキップします。');
+      setPhase('night');
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [gameState, gameLogic, addMessage, addSystemMessage, setPhase, setGameOver, onGameEnd]);
 
   const handleVoteConfirm = useCallback(async () => {
     if (!voteTarget || !gameState || !gameLogic) return;
     setIsProcessing(true);
 
-    const human = gameState.getHuman();
-    const target = gameState.getPlayerById(voteTarget);
-    addMessage({
-      id: `msg_${Date.now()}`,
-      sender: human.id,
-      senderName: human.name,
-      content: `${target?.name || '???'}に投票しました`,
-      isHuman: true,
-      avatarColor: human.avatarColor,
-      avatarBg: human.avatarBg,
-      initial: human.initial,
-      type: 'vote',
-    });
+    try {
+      const h = gameState.getHuman();
+      const target = gameState.getPlayerById(voteTarget);
+      addMessage({
+        id: `msg_${Date.now()}`,
+        sender: h.id,
+        senderName: h.name,
+        content: `${target?.name || '???'}に投票しました`,
+        isHuman: true,
+        avatarColor: h.avatarColor,
+        avatarBg: h.avatarBg,
+        initial: h.initial,
+        type: 'vote',
+      });
 
-    // Get AI votes
-    const aiVotes = await ai.getAiVotes();
-    const allVotes: Record<string, string> = { [human.id]: voteTarget, ...aiVotes };
+      const aiVotes = await aiRef.current.getAiVotes();
+      const allVotes: Record<string, string> = { [h.id]: voteTarget, ...aiVotes };
 
-    // Tally
-    const executed = gameLogic.tallyVotes(allVotes);
-    if (executed) {
-      const executedPlayer = gameState.getPlayerById(executed);
-      addSystemMessage(`投票の結果、${executedPlayer?.name || '???'}が処刑されました`);
-      gameLogic.handleExecution(executed);
-      gameState.save();
-    }
+      const executed = gameLogic.tallyVotes(allVotes);
+      if (executed) {
+        const executedPlayer = gameState.getPlayerById(executed);
+        addSystemMessage(`投票の結果、${executedPlayer?.name || '???'}が処刑されました`);
+        gameLogic.handleExecution(executed);
+        gameState.save();
+      }
 
-    // Check win condition
-    const winner = gameState.checkWinCondition();
-    if (winner) {
-      setGameOver(winner);
-      setTimeout(onGameEnd, 1500);
+      const winner = gameState.checkWinCondition();
+      if (winner) {
+        setGameOver(winner);
+        setTimeout(onGameEnd, 1500);
+        setIsProcessing(false);
+        return;
+      }
+
+      setPhase('night');
+      setNightTarget(null);
+      addSystemMessage('【夜】能力を使用してください');
+    } catch (e) {
+      console.error('Vote error:', e);
+      addSystemMessage('投票処理でエラーが発生しました。夜フェーズに進みます。');
+      setPhase('night');
+      setNightTarget(null);
+    } finally {
       setIsProcessing(false);
-      return;
     }
-
-    // Transition to night
-    setPhase('night');
-    setNightTarget(null);
-    addSystemMessage('【夜】能力を使用してください');
-    setIsProcessing(false);
-  }, [voteTarget, gameState, gameLogic, ai, addMessage, addSystemMessage, setPhase, setGameOver, onGameEnd]);
+  }, [voteTarget, gameState, gameLogic, addMessage, addSystemMessage, setPhase, setGameOver, onGameEnd]);
 
   const handleNightConfirm = useCallback(async () => {
     if (!gameState || !gameLogic) return;
     setIsProcessing(true);
 
-    const human = gameState.getHuman();
-    const humanRole = ROLES[gameState.getEffectiveRole(human.id)];
+    try {
+      const h = gameState.getHuman();
+      const humanRole = ROLES[gameState.getEffectiveRole(h.id)];
 
-    // Collect AI night actions
-    const actions: Record<string, string> = await ai.getAiNightActions();
+      const actions: Record<string, string> = await aiRef.current.getAiNightActions();
 
-    // Add human action
-    if (humanRole?.nightAction && nightTarget) {
-      const ability = humanRole.ability;
-      if (ability === 'divine') actions.divine = nightTarget;
-      else if (ability === 'guard') actions.guard = nightTarget;
-      else if (ability === 'attack') actions.attack = nightTarget;
-      else if (ability === 'sageDiv') actions.sageDiv = nightTarget;
-      else if (ability === 'trap') actions.trap = nightTarget;
-      else if (ability === 'heal') actions.heal = nightTarget;
-    }
+      // Add human action only if alive and has ability
+      if (h.isAlive && humanRole?.nightAction && nightTarget) {
+        const ability = humanRole.ability;
+        if (ability === 'divine') actions.divine = nightTarget;
+        else if (ability === 'guard') actions.guard = nightTarget;
+        else if (ability === 'attack') actions.attack = nightTarget;
+        else if (ability === 'sageDiv') actions.sageDiv = nightTarget;
+        else if (ability === 'trap') actions.trap = nightTarget;
+        else if (ability === 'heal') actions.heal = nightTarget;
+      }
 
-    // Resolve night
-    const result = gameLogic.resolveNight(actions);
+      const result = gameLogic.resolveNight(actions);
 
-    // Show results to human
-    if (result.divineTarget && humanRole?.ability === 'divine') {
-      const targetPlayer = gameState.getPlayerById(result.divineTarget);
-      addSystemMessage(`占い結果: ${targetPlayer?.name || '???'}は【${result.divineResult === 'werewolf' ? '人狼' : '村人'}】`);
-    }
+      // Show results to human
+      if (h.isAlive && result.divineTarget && humanRole?.ability === 'divine') {
+        const targetPlayer = gameState.getPlayerById(result.divineTarget);
+        addSystemMessage(`占い結果: ${targetPlayer?.name || '???'}は【${result.divineResult === 'werewolf' ? '人狼' : '村人'}】`);
+      }
 
-    if (result.sageTarget && humanRole?.ability === 'sageDiv') {
-      const targetPlayer = gameState.getPlayerById(result.sageTarget);
-      const targetRole = ROLES[result.sageResult];
-      addSystemMessage(`調査結果: ${targetPlayer?.name || '???'}の役職は【${targetRole?.name || '???'}】`);
-    }
+      if (h.isAlive && result.sageTarget && humanRole?.ability === 'sageDiv') {
+        const targetPlayer = gameState.getPlayerById(result.sageTarget);
+        const targetRole = ROLES[result.sageResult];
+        addSystemMessage(`調査結果: ${targetPlayer?.name || '???'}の役職は【${targetRole?.name || '???'}】`);
+      }
 
-    if (result.mediumResult && humanRole?.ability === 'mediumDive') {
-      addSystemMessage(`霊能結果: ${result.mediumResult.name}は【${result.mediumResult.result === 'werewolf' ? '人狼' : '村人'}】`);
-    }
+      if (h.isAlive && result.mediumResult && humanRole?.ability === 'mediumDive') {
+        addSystemMessage(`霊能結果: ${result.mediumResult.name}は【${result.mediumResult.result === 'werewolf' ? '人狼' : '村人'}】`);
+      }
 
-    if (result.killed.length > 0) {
-      result.killed.forEach((id: string) => {
-        const p = gameState.getPlayerById(id);
-        addSystemMessage(`${p?.name || '???'}が無残な姿で発見されました...`);
-      });
-    } else {
-      addSystemMessage('昨晩は誰も襲撃されませんでした');
-    }
+      if (result.killed.length > 0) {
+        result.killed.forEach((id: string) => {
+          const p = gameState.getPlayerById(id);
+          addSystemMessage(`${p?.name || '???'}が無残な姿で発見されました...`);
+        });
+      } else {
+        addSystemMessage('昨晩は誰も襲撃されませんでした');
+      }
 
-    gameState.save();
+      gameState.save();
 
-    // Check win
-    const winner = gameState.checkWinCondition();
-    if (winner) {
-      setGameOver(winner);
-      setTimeout(onGameEnd, 1500);
+      const winner = gameState.checkWinCondition();
+      if (winner) {
+        setGameOver(winner);
+        setTimeout(onGameEnd, 1500);
+        setIsProcessing(false);
+        return;
+      }
+
+      // Advance to next day
+      gameState.day += 1;
+      gameState.phase = 'day';
+      gameState.executedToday = null;
+      setDay(gameState.day);
+      setPhase('day');
+      setAiStatementsStarted(false);
+      setHumanSpoken(false);
+    } catch (e) {
+      console.error('Night error:', e);
+      addSystemMessage('夜フェーズでエラーが発生しました。次の日に進みます。');
+      gameState.day += 1;
+      gameState.phase = 'day';
+      gameState.executedToday = null;
+      setDay(gameState.day);
+      setPhase('day');
+      setAiStatementsStarted(false);
+      setHumanSpoken(false);
+    } finally {
       setIsProcessing(false);
-      return;
     }
-
-    // Advance to next day
-    gameState.day += 1;
-    gameState.phase = 'day';
-    gameState.executedToday = null;
-    setDay(gameState.day);
-    setPhase('day');
-    setAiStatementsStarted(false);
-    setHumanSpoken(false);
-    setIsProcessing(false);
-  }, [gameState, gameLogic, nightTarget, ai, addSystemMessage, setPhase, setDay, setGameOver, onGameEnd]);
+  }, [gameState, gameLogic, nightTarget, addSystemMessage, setPhase, setDay, setGameOver, onGameEnd]);
 
   if (!gameState) return null;
 
-  const human = gameState.getHuman();
   const humanRole = ROLES[gameState.getEffectiveRole(human?.id)];
   const alive = gameState.getAlive();
   const isNightPhase = state.phase === 'night';
-  const humanHasNightAction = humanRole?.nightAction && human?.isAlive;
+  const humanHasNightAction = humanRole?.nightAction && humanAlive;
 
   return (
     <div className={`screen screen-game ${isNightPhase ? 'night' : ''}`}>
@@ -254,6 +342,7 @@ export function GameScreen({ game, onGameEnd }: Props) {
           </span>
         </div>
         <div className="header-right">
+          {!humanAlive && <span className="dead-badge">💀 観戦中</span>}
           <span className="role-badge" style={{ color: humanRole?.color }}>
             {humanRole?.icon} {humanRole?.name}
           </span>
@@ -286,7 +375,7 @@ export function GameScreen({ game, onGameEnd }: Props) {
 
       {/* Action Area */}
       <div className="action-area">
-        {state.phase === 'day' && !state.isGameOver && (
+        {state.phase === 'day' && !state.isGameOver && humanAlive && (
           <>
             <div className="input-row">
               <input
@@ -313,7 +402,13 @@ export function GameScreen({ game, onGameEnd }: Props) {
           </>
         )}
 
-        {state.phase === 'vote' && !state.isGameOver && (
+        {state.phase === 'day' && !state.isGameOver && !humanAlive && (
+          <div className="night-skip">
+            <p>あなたは死亡しています。観戦中...</p>
+          </div>
+        )}
+
+        {state.phase === 'vote' && !state.isGameOver && humanAlive && (
           <VoteGrid
             targets={alive.filter((p: any) => p.id !== human?.id).map((p: any) => ({
               id: p.id,
@@ -329,7 +424,13 @@ export function GameScreen({ game, onGameEnd }: Props) {
           />
         )}
 
-        {state.phase === 'night' && !state.isGameOver && (
+        {state.phase === 'vote' && !state.isGameOver && !humanAlive && (
+          <div className="night-skip">
+            <p>投票中... 観戦しています</p>
+          </div>
+        )}
+
+        {state.phase === 'night' && !state.isGameOver && humanAlive && (
           humanHasNightAction ? (
             <NightAction
               role={gameState.getEffectiveRole(human.id)}
@@ -352,6 +453,12 @@ export function GameScreen({ game, onGameEnd }: Props) {
               </button>
             </div>
           )
+        )}
+
+        {state.phase === 'night' && !state.isGameOver && !humanAlive && (
+          <div className="night-skip">
+            <p>夜が明けるのを待っています...</p>
+          </div>
         )}
       </div>
     </div>
