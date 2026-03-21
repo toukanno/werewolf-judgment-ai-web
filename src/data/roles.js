@@ -1639,6 +1639,19 @@ const ROLES = {
     color: '#d50000',
     icon: '❤',
     category: 'その他'
+  },
+
+  silverShadow: {
+    id: 'silverShadow',
+    name: '銀色の影',
+    team: TEAMS.OTHER,
+    ability: null,
+    nightAction: false,
+    appearAsWerewolf: false,
+    description: 'ゲーム終了時に生き残っていれば勝利する。最初の襲撃を耐えることができる。',
+    color: '#b0bec5',
+    icon: '🌙',
+    category: 'その他'
   }
 };
 
