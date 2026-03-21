@@ -66,13 +66,20 @@ class GameLogic {
       }
     }
 
-    // Straw doll: choose someone to drag down (AI auto-selects randomly)
+    // Straw doll: drag someone down on execution
     if (roleId === 'strawDoll') {
-      const others = this.state.getAlive().filter(player => player.id !== playerId);
-      if (others.length > 0) {
-        const victim = others[Math.floor(Math.random() * others.length)];
-        this.state.killPlayer(victim.id, 'strawDoll');
-        this.state.addLog('処刑', `わら人形の効果により${victim.name}が道連れになりました`, null);
+      const candidates = this.state.getAlive().filter(player => player.id !== playerId);
+      if (candidates.length > 0) {
+        // Select a random target (UI-driven selection for human players
+        // can override this via strawDollTarget if set on state)
+        const victim = this.state.strawDollTarget
+          ? this.state.getPlayerById(this.state.strawDollTarget)
+          : candidates[Math.floor(Math.random() * candidates.length)];
+        if (victim && victim.isAlive) {
+          this.state.killPlayer(victim.id, 'strawDoll');
+          this.state.addLog('処刑', `わら人形の効果により${victim.name}が道連れになりました`, null);
+        }
+        this.state.strawDollTarget = null;
       }
     }
 
