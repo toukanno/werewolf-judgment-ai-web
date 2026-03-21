@@ -43,3 +43,9 @@ function createAvatarDataURL(player, size) {
   const svg = createAvatarSVG(player, size);
   return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { AI_PLAYERS, createAvatarSVG, createAvatarDataURL };
+}
+
+export { AI_PLAYERS, createAvatarSVG, createAvatarDataURL };

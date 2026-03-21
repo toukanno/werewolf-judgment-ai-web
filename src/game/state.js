@@ -444,3 +444,5 @@ class GameState {
     }
   }
 }
+
+export { GameState };

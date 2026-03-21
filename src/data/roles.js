@@ -2047,3 +2047,5 @@ if (typeof module !== 'undefined' && module.exports) {
 if (typeof globalThis !== 'undefined') {
   Object.assign(globalThis, _rolesExport);
 }
+
+export { TEAMS, TEAM_INFO, ROLES, ROLE_CATEGORIES, DEFAULT_PRESETS, COMPOSITIONS, getTeamLabel, getCompositionText, getRolesByTeam, getRolesByCategory, getTotalRoleCount, validateComposition };

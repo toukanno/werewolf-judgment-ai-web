@@ -275,3 +275,5 @@ JSON形式で応答してください: {"statement": "...", "reasoning": "..."}`
     }
   }
 }
+
+export { AI_PROVIDER_CONFIGS, OpenRouterAI };

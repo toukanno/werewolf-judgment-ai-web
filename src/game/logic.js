@@ -395,3 +395,5 @@ class GameLogic {
     return await this.ai.getReaction(player, humanMessage, this.state);
   }
 }
+
+export { GameLogic };

@@ -10,7 +10,7 @@ Thumbs.db
 coverage/
 .claude/
 .vercel
-
-# Common rules (auto-added)
+.company/
+tsconfig.tsbuildinfo
 build/
 .idea/

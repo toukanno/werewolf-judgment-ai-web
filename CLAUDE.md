@@ -1,101 +1,158 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project Overview
 
-Browser-based Werewolf (Mafia) game where one human player competes against AI opponents. Vanilla JavaScript with no framework and no build step. AI players use OpenRouter/Groq/OpenAI (user-provided key) with MockAI fallback for offline play. Supports 5-20 player villages with 50+ role types.
+Werewolf Judgment AI Web (人狼AI対戦) — a browser-based Werewolf (Mafia) game where a human player competes against AI opponents. Built with React + Vite + TypeScript. AI players are powered by Groq/OpenRouter/OpenAI (user-selected) with a fallback mock AI for offline play. Supports 5–20 player villages with 121 roles.
 
 **Live:** https://werewolf-judgment-ai-web.vercel.app
 
-## Commands
+## Tech Stack
+
+- **Frontend:** React 19 + TypeScript + Vite
+- **AI API:** Groq (free) / OpenRouter / OpenAI (user-provided API key, combobox selection)
+- **Hosting:** Vercel (Vite build → dist/)
+- **Storage:** localStorage (game state persistence)
+- **Language:** Japanese UI and documentation; code identifiers in English
+- **Font:** M PLUS Rounded 1c (Google Fonts)
+
+## Project Structure
+
+```
+index.html              # Vite entry point
+vite.config.ts          # Vite config (base: '/', react plugin)
+tsconfig.json           # TypeScript config
+vercel.json             # Vercel deploy config (npm run build → dist/)
+public/
+  favicon.svg           # Wolf favicon
+  og-image.png          # OGP image (1200x630)
+src/
+  main.tsx              # React entry (createRoot)
+  App.tsx               # Screen router (title/lobby/game/result/guide)
+  App.css               # Full dark theme CSS
+  global.d.ts           # Type declarations for JS modules
+  types/
+    index.ts            # TypeScript interfaces (Player, Role, ChatMessage, etc.)
+  components/
+    TitleScreen.tsx      # Title with start + guide buttons
+    LobbyScreen.tsx      # Player count, role presets, API config
+    GameScreen.tsx       # Day chat + vote grid + night action (main game loop)
+    ResultScreen.tsx     # Winner banner + all roles revealed
+    GuideScreen.tsx      # API key setup guide
+    ChatMessage.tsx      # LINE-style chat bubble (AI left, human right)
+    PlayerChip.tsx       # Player avatar + name + status
+    VoteGrid.tsx         # 3-column vote target grid
+    NightAction.tsx      # Night ability target selection
+    RoleReveal.tsx       # Role reveal modal overlay
+  hooks/
+    useGameState.ts      # useReducer game state management
+    useAI.ts             # AI statement/vote/night action orchestration
+  ai/
+    openrouter.js        # Multi-provider API client (Groq/OpenRouter/OpenAI)
+    mock.js              # Offline pattern-based AI
+    image-prompt-builder.js
+  game/
+    state.js             # GameState class (players, phases, persistence)
+    logic.js             # GameLogic class (voting, night resolution, role interactions)
+  data/
+    roles.js             # 121 role definitions + presets (5-20 players)
+    players.js           # 19 AI player profiles with personalities
+    roles.json / players.json
+  ui/                    # Legacy (unused by React app)
+    screens.js
+    game-ui.js
+test/
+  game-test.cjs          # 33-assertion headless test suite
+  image-prompt-builder-test.js
+legacy/                  # Old vanilla JS files (pre-React)
+docs/
+  plan.md
+```
+
+## Development Commands
 
 ```bash
-# Serve locally (recommended)
-python3 -m http.server 8080
-# Then open http://localhost:8080/public/index.html
+# Install dependencies
+npm install
 
-# Run tests (Node.js required)
-node test/game-test.js
-node test/image-prompt-builder-test.js
+# Dev server
+npm run dev
+
+# Build (TypeScript check + Vite build → dist/)
+npm run build
+
+# Preview production build locally
+npm run preview
+
+# Run tests
+npm test
 ```
 
-No npm, no build step, no linter. Tests are plain Node.js scripts using `assert`-style checks.
+## Testing
 
-## Dependency Direction
+Tests are headless Node.js scripts (`.cjs`) with assert-based checks. Run with `npm test`. The suite covers:
 
-```
-src/data/ (roles, players)
-  ↓
-src/game/ (state, logic)
-  ↓
-src/ai/ (mock, openrouter)
-  ↓
-src/ui/ (screens, game-ui)
-  ↓
-public/app.js (orchestration)
-```
+- Player initialization and role distribution (5/7/9/20 players)
+- Death mechanics and win conditions (village/werewolf/fox/lover)
+- Vote tallying and tie-breaking
+- Night resolution (guard, attack, divine)
+- MockAI statement/vote/night action generation
+- Integration flow (vote → execution → night → win check)
 
-All files are loaded via `<script>` tags in `public/index.html` in this exact order:
-1. `src/data/roles.js` - `ROLES`, `DEFAULT_PRESETS`, `TEAMS`, `TEAM_INFO`
-2. `src/data/players.js` - `AI_PLAYERS`, `createAvatarSVG`
-3. `src/game/state.js` - `GameState`
-4. `src/game/logic.js` - `GameLogic`
-5. `src/ai/mock.js` - `MockAI`
-6. `src/ai/openrouter.js` - `OpenRouterAI`, `AI_PROVIDER_CONFIGS`
-7. `src/ui/screens.js` - `showScreen`, `selectPlayerCount`, `selectPreset`
-8. `src/ui/game-ui.js` - `GameUI`
-9. `public/app.js` - game loop, global `gameState`, `gameLogic`
+All 33 tests must pass before merging changes.
 
-No ES modules. Every export is a global variable/class/function.
+## Architecture & Key Patterns
 
-## Architecture
+### React + Vite
+- Vite builds from `index.html` (root) → `src/main.tsx`
+- Existing game logic JS files are imported as ES modules (with `export` statements added)
+- TypeScript declarations in `src/global.d.ts` provide types for JS modules
 
-| Directory | Role |
-|-----------|------|
-| `src/data/` | Static data: 50+ role definitions with team/ability metadata, 19 AI player profiles with personality/style, pre-balanced compositions for 5-20 players |
-| `src/game/state.js` | `GameState` class: player list, phase tracking, role-specific flags, win condition checks, localStorage save/load (version 3) |
-| `src/game/logic.js` | `GameLogic` class: vote tallying (mayor double vote, tie-breaking), night resolution (15-step ordered pipeline: guard -> trap -> heal -> bless -> attack -> divine -> ... -> medium), execution side effects |
-| `src/ai/mock.js` | `MockAI`: personality-keyed dialogue templates, offline vote/night action logic |
-| `src/ai/openrouter.js` | Multi-provider AI client (Groq/OpenRouter/OpenAI), auto-fallback to MockAI on error |
-| `src/ui/` | DOM manipulation: screen transitions, message rendering (simple Markdown), player list, action buttons |
-| `public/app.js` | Main loop: day discussion -> vote -> execution -> night abilities -> win check -> repeat |
+### Screen Flow (useState in App.tsx)
+1. **Title** → 2. **Lobby** (player count, roles, API) → 3. **Game** → 4. **Result**
+- Guide screen accessible from title
 
-## Entry Points
+### Game Flow (GameScreen.tsx)
+1. **Day Phase** — AI speaks 1-2s intervals via setTimeout, human chats + CO buttons, "投票に進む" button (never auto-advances)
+2. **Vote Phase** — 3-column grid, select → red border → confirm → tally → execution
+3. **Night Phase** — Role-specific target selection → resolve all actions → morning message
 
-- **Browser:** `public/index.html` loads everything via script tags
-- **Tests:** `test/game-test.js` concatenates source files via `fs.readFileSync` and injects into `globalThis`
+### State Management
+- `useGameState` hook with `useReducer` wraps the existing `GameState` class
+- `useAI` hook orchestrates AI statements, reactions, votes, and night actions
+- Game state saved to localStorage after major actions
 
-## Testing Notes
+### AI Integration
+- Combobox in lobby: Groq / OpenRouter / OpenAI / None
+- `OpenRouterAI` class handles all providers via config map
+- On API failure, auto-fallback to `MockAI`
+- API key never stored server-side
 
-- Runner: plain Node.js (`node test/game-test.js`), no framework
-- Pattern: `assert(condition, message)` with pass/fail counter, exits non-zero on failure
-- Tests load source files by concatenating them with `fs.readFileSync` then `new Function(...)` to inject globals
-- 22+ assertions covering: player init, role distribution (5/7/9/20 players), kill/death, win conditions (village/werewolf/fox/lover), vote tallying, night resolution (guard blocks attack), MockAI responses
-- To add a test: append assertions inside `runTests()` in `test/game-test.js`
-- All tests must pass before merging
+### Roles (121 total)
+Village team, Werewolf team, Fox team, Lover team, Zombie team, Devil team, Other.
+Pre-balanced compositions for 5–20 players in `DEFAULT_PRESETS`.
 
-## Change Rules
+## Code Conventions
 
-### Do Not Modify
+- **Japanese** for all user-facing text
+- **English** for code identifiers
+- Existing JS files (game logic) kept as `.js` with added `export` statements
+- New code is TypeScript (`.tsx` / `.ts`)
+- CSS uses custom properties (CSS variables) with dark theme
+- No CSS modules — single `App.css` with BEM-ish class names
 
-These are foundational constants that many parts of the codebase depend on. Changing them will break role distribution, win conditions, and tests.
+## Do Not Modify
 
-- **`ROLES` object** (`src/data/roles.js`): role IDs, team assignments, ability flags. Role IDs are used as keys everywhere (state, logic, tests, AI prompts).
-- **`DEFAULT_PRESETS`** (`src/data/roles.js`): balanced compositions for each player count (5-20). Tests assert exact role counts.
-- **`TEAMS` / `TEAM_INFO`** (`src/data/roles.js`): team identifiers used in win condition logic.
-- **`AI_PLAYERS` array** (`src/data/players.js`): 19 player profiles. Changing IDs breaks save compatibility. Changing count below 19 breaks 20-player games.
-- **`GameState.SAVE_VERSION`** (`src/game/state.js`): increment only when save format changes (currently 3). Old saves are discarded on version mismatch.
-- **`GameState.SAVE_KEY`** (`src/game/state.js`): localStorage key name.
-- **Night resolution order** (`GameLogic.resolveNight` in `src/game/logic.js`): the 15-step sequence (guard -> trap -> heal -> ... -> medium) is the core game rule engine. Reordering changes game behavior.
-- **Script load order** in `public/index.html`: each file depends on globals from the previous one.
+- **`ROLES` object** / **`DEFAULT_PRESETS`** / **`TEAMS`** / **`TEAM_INFO`** (`src/data/roles.js`)
+- **`AI_PLAYERS` array** (`src/data/players.js`)
+- **`GameState.SAVE_VERSION`** / **`GameState.SAVE_KEY`** (`src/game/state.js`)
+- **Night resolution order** (`GameLogic.resolveNight` in `src/game/logic.js`)
 
-### Before Any Change
+## Deployment
 
-1. Run `node test/game-test.js` and confirm all 22+ assertions pass.
-2. If touching `src/game/state.js` or `src/game/logic.js`, verify win conditions still work (village, werewolf, fox, lover cases are all tested).
-3. If adding a new source file, add its `<script>` tag in `public/index.html` in the correct dependency order AND add it to the `files` array in `test/game-test.js`.
-4. If changing role data or presets, update the corresponding `.json` mirror file (`roles.json`, `players.json`).
-5. If modifying save/load fields in `GameState`, bump `SAVE_VERSION`.
-6. Keep all user-facing text in Japanese. Keep all code identifiers in English.
-7. Do not introduce npm dependencies, ES modules, or build steps.
+Vercel deployment via `vercel.json`:
+- Build: `npm run build`
+- Output: `dist/`
+- SPA rewrite: all routes → `/index.html`
+- Security headers: X-Content-Type-Options, X-Frame-Options
+
+`.vercelignore`: `.git`, `test`, `docs`, `*.md`, `.env*`

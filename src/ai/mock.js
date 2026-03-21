@@ -392,3 +392,5 @@ class MockAI {
     return this._pick(targets).id;
   }
 }
+
+export { MockAI };
