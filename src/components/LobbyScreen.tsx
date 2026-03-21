@@ -196,6 +196,7 @@ export function LobbyScreen({ onStartGame, onBack }: Props) {
             <option value="groq">Groq</option>
             <option value="openrouter">OpenRouter</option>
             <option value="openai">OpenAI</option>
+            <option value="anthropic">Claude（Anthropic）</option>
           </select>
           {apiProvider !== 'none' && (
             <div className="api-key-row">

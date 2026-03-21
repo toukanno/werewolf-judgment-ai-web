@@ -32,6 +32,24 @@ const AI_PROVIDER_CONFIGS = {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${key}`
     })
+  },
+  anthropic: {
+    url: "https://api.anthropic.com/v1/messages",
+    model: "claude-sonnet-4-20250514",
+    testUrl: "https://api.anthropic.com/v1/models",
+    headers: (key) => ({
+      "Content-Type": "application/json",
+      "x-api-key": key,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    }),
+    transformRequest: (messages, model, temperature, maxTokens) => ({
+      model,
+      max_tokens: maxTokens,
+      messages: messages.map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.content })),
+      temperature
+    }),
+    transformResponse: (data) => data.content?.[0]?.text || null
   }
 };
 
@@ -69,8 +87,13 @@ class OpenRouterAI {
    * Internal API request — throws on error (no silent fallback here)
    */
   async _request(messages) {
+    const cfg = AI_PROVIDER_CONFIGS[this.apiType] || AI_PROVIDER_CONFIGS.openrouter;
     const headers = this._getHeaders(this.apiKey);
-    const body = JSON.stringify({ model: this.model, messages, temperature: 0.8, max_tokens: 300 });
+
+    const body = cfg.transformRequest
+      ? JSON.stringify(cfg.transformRequest(messages, this.model, 0.8, 300))
+      : JSON.stringify({ model: this.model, messages, temperature: 0.8, max_tokens: 300 });
+
     console.log(`[AI:${this.apiType}] request →`, this.model);
 
     const res = await fetch(this.baseUrl, { method: "POST", headers, body });
@@ -81,7 +104,11 @@ class OpenRouterAI {
       throw new Error(msg);
     }
     const data = await res.json();
-    const content = data.choices?.[0]?.message?.content;
+
+    const content = cfg.transformResponse
+      ? cfg.transformResponse(data)
+      : data.choices?.[0]?.message?.content;
+
     if (!content) {
       const msg = `[AI:${this.apiType}] Empty response: ${JSON.stringify(data)}`;
       console.error(msg);

@@ -78,7 +78,7 @@ export interface VoteRecord {
 
 export type Screen = 'title' | 'lobby' | 'game' | 'result' | 'guide';
 export type GamePhase = 'day' | 'vote' | 'night';
-export type ApiProvider = 'groq' | 'openrouter' | 'openai' | 'none';
+export type ApiProvider = 'groq' | 'openrouter' | 'openai' | 'anthropic' | 'none';
 
 export interface GameConfig {
   playerName: string;

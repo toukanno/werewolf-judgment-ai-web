@@ -75,6 +75,26 @@ export function GuideScreen({ onBack }: Props) {
           </div>
         </section>
 
+        <section className="guide-section">
+          <h2>🤖 Claude（Anthropic）APIキーの場合 <span className="badge-paid">従量課金</span></h2>
+          <p>AnthropicのClaude APIを直接利用します。高品質な日本語応答が特徴です。</p>
+          <div className="guide-step">
+            <span className="step-num">1</span>
+            <span className="step-text">
+              <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer">https://console.anthropic.com</a> でアカウントを作成します。
+            </span>
+          </div>
+          <div className="guide-step">
+            <span className="step-num">2</span>
+            <span className="step-text">クレジットを購入し、API Keysページでキー（sk-ant-...で始まる文字列）を生成します。</span>
+          </div>
+          <div className="guide-step">
+            <span className="step-num">3</span>
+            <span className="step-text">ゲーム設定画面で「Claude（Anthropic）」を選択し、キーを入力します。</span>
+          </div>
+          <p className="guide-warning">⚠ Anthropic APIは従量課金です。Claude Sonnet利用で1ゲームあたり数円〜数十円程度です。</p>
+        </section>
+
         <button className="btn btn-ghost guide-back" onClick={onBack}>← ゲームに戻る</button>
       </div>
     </div>
