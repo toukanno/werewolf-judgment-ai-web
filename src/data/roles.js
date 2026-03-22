@@ -1067,10 +1067,10 @@ const ROLES = {
     id: 'lightApostle',
     name: '光の使徒',
     team: TEAMS.VILLAGE,
-    ability: null,
+    ability: 'randomVillageRole',
     nightAction: false,
     appearAsWerewolf: false,
-    description: '処刑されると翌日が平和になる（襲撃が発生しない）。',
+    description: 'ゲーム開始時にランダムで村人陣営の役職に変化する。どの役職になるかは本人にも分からない。',
     color: '#fff9c4',
     icon: '☀',
     category: '市民陣営（特殊）'
