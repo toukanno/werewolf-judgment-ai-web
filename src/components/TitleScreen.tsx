@@ -9,7 +9,7 @@ export function TitleScreen({ onStart, onGuide }: Props) {
       <div className="title-container">
         <div className="title-frame">
           <div className="title-logo">🐺</div>
-          <h1 className="title-text">人狼ジャッジメント<span className="title-ai">AI</span></h1>
+          <h1 className="title-text">人狼<span className="title-ai">AI</span></h1>
           <p className="title-sub">ブラウザで遊べる AI 人狼ゲーム</p>
         </div>
         <div className="title-actions">
