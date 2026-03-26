@@ -64,10 +64,7 @@ export function LobbyScreen({ onStartGame, onBack }: Props) {
   };
 
   const handleStart = () => {
-    if (!playerName.trim()) {
-      alert('プレイヤー名を入力してください');
-      return;
-    }
+    const name = playerName.trim() || 'プレイヤー';
     const comp = getComposition();
     const validation = validateComposition(comp);
     if (preset === 'custom' && !validation.isValid) {
@@ -75,7 +72,7 @@ export function LobbyScreen({ onStartGame, onBack }: Props) {
       return;
     }
     onStartGame({
-      playerName: playerName.trim(),
+      playerName: name,
       playerCount,
       preset,
       composition: comp,
